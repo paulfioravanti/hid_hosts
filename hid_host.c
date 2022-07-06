@@ -68,7 +68,6 @@ int main(int argc, char* argv[]) {
     printf("Open device retry: %d\n", current_retry);
     current_retry++;
   }
-  printf("Device opened successfully\n");
 
   buf[0] = arg_int;
   res = hid_write(device, buf, 1);
