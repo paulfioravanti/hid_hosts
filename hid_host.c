@@ -32,13 +32,13 @@ int main(int argc, char* argv[]) {
   // - an invalid character was found before the end of the string
   // - overflow or underflow errors occurred
   if (*string_end != '\0' || errno != 0) {
-      printf("Invalid character %s\n", argv[1]);
-      return 1;
+    printf("Invalid character %s\n", argv[1]);
+    return 1;
   }
   // Check that the number is within the limited capacity of an int
   if (arg < INT_MIN || arg > INT_MAX) {
-      printf("Integer value is out of bounds");
-      return 1;
+    printf("Integer value is out of bounds");
+    return 1;
   }
   int arg_int = arg;
 
