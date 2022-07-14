@@ -40,14 +40,9 @@ int main(int argc, char* argv[]) {
     printf("Integer value is out of bounds");
     return 1;
   }
-  int arg_int = arg;
-
-  int res;
-  unsigned char buf[1];
-  hid_device *device;
 
   // Initialize the hidapi library
-  res = hid_init();
+  int res = hid_init();
   if (res < 0) {
     printf("Unable to initialize hidapi library\n");
     return 1;
@@ -56,7 +51,7 @@ int main(int argc, char* argv[]) {
   int max_retries = 20;
   int current_retry = 1;
   // Open the device using the VID, PID,
-  device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
+  hid_device* device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
 
   while (!device) {
     usleep(50000);
@@ -69,7 +64,7 @@ int main(int argc, char* argv[]) {
     current_retry++;
   }
 
-  buf[0] = arg_int;
+  unsigned char buf[1] = {arg};
   res = hid_write(device, buf, 1);
 
   if (res < 0) {
