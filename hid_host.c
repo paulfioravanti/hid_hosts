@@ -17,7 +17,6 @@ int main(int argc, char* argv[]) {
     printf("Only one argument allowed\n");
     return 1;
   }
-
   // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
   if (strlen(argv[1]) == 0) {
     printf("Argument cannot be an empty string\n");
@@ -74,9 +73,7 @@ int main(int argc, char* argv[]) {
 
   // Close the device
   hid_close(device);
-
   // Finalize the hidapi library
   hid_exit();
-
   return 0;
 }
