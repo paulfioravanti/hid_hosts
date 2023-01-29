@@ -10,6 +10,7 @@
 long parse_arguments(int argc, char* argv[]);
 char* generate_log_filepath();
 hid_device* open_device();
+void log_out_read_message(int message, FILE *log_file);
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
@@ -41,7 +42,6 @@ static const char SUCCESS_MESSAGE[] =
   "SUCCESS: HID message sent successfully\n";
 static const char GAMING_MODE_MESSAGE[] = "GAMING MODE activated!\n";
 static const char STENO_MODE_MESSAGE[] = "STENO MODE activated!\n";
-
 
 int main(int argc, char* argv[]) {
   long arg = parse_arguments(argc, argv);
@@ -120,31 +120,7 @@ int main(int argc, char* argv[]) {
         log_file
       );
     } else {
-      switch (buf[1]) {
-        case GAMING_MODE:
-          fwrite(
-            GAMING_MODE_MESSAGE,
-            1,
-            strlen(GAMING_MODE_MESSAGE),
-            log_file
-          );
-          break;
-        case STENO_MODE:
-          fwrite(
-            STENO_MODE_MESSAGE,
-            1,
-            strlen(STENO_MODE_MESSAGE),
-            log_file
-          );
-          break;
-        default:
-          fwrite(
-            HID_READ_BAD_VALUE_MESSAGE,
-            1,
-            strlen(HID_READ_BAD_VALUE_MESSAGE),
-            log_file
-          );
-      }
+      log_out_read_message(buf[1], log_file);
     }
   }
 
@@ -218,4 +194,32 @@ hid_device* open_device() {
   }
 
   return device;
+}
+
+void log_out_read_message(int message, FILE *log_file) {
+  switch (message) {
+    case GAMING_MODE:
+      fwrite(
+        GAMING_MODE_MESSAGE,
+        1,
+        strlen(GAMING_MODE_MESSAGE),
+        log_file
+      );
+      break;
+    case STENO_MODE:
+      fwrite(
+        STENO_MODE_MESSAGE,
+        1,
+        strlen(STENO_MODE_MESSAGE),
+        log_file
+      );
+      break;
+    default:
+      fwrite(
+        HID_READ_BAD_VALUE_MESSAGE,
+        1,
+        strlen(HID_READ_BAD_VALUE_MESSAGE),
+        log_file
+      );
+  }
 }
