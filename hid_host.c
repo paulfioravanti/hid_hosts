@@ -13,7 +13,11 @@
 #define PRODUCT_ID 0x1337
 
 enum {
-  MAX_RETRIES = 20
+  BUFFER_LENGTH = 2,
+  GAMING_MODE = 3,
+  MAX_RETRIES = 20,
+  MAX_TIMEOUT = 500,
+  STENO_MODE = 4
 };
 
 // REF: https://github.com/rabbitgrowth/plover-tapey-tape
@@ -25,8 +29,14 @@ static const char DEVICE_OPEN_FAIL_MESSAGE[] =
   "ERROR: Exhausted attempts to open HID device\n";
 static const char DEVICE_WRITE_FAIL_MESSAGE[] =
   "ERROR: Unable to write to HID device\n";
+static const char DEVICE_READ_FAIL_MESSAGE[] =
+  "ERROR: Unable to read from HID device\n";
+static const char HID_READ_BAD_VALUE_MESSAGE[] =
+  "ERROR: Unexpected value received from HID device\n";
 static const char SUCCESS_MESSAGE[] =
   "SUCCESS: HID message sent successfully\n";
+static const char GAMING_MODE_MESSAGE[] = "GAMING MODE activated!\n";
+static const char STENO_MODE_MESSAGE[] = "STENO MODE activated!\n";
 
 int main(int argc, char* argv[]) {
   // Requires only one argument
@@ -71,16 +81,19 @@ int main(int argc, char* argv[]) {
     fwrite(HID_INIT_FAIL_MESSAGE, 1, strlen(HID_INIT_FAIL_MESSAGE), log_file);
     fclose(log_file);
     free(log_filepath);
+    hid_exit();
     return 1;
   }
 
   int current_retry = 1;
   // Open the device using the VID, PID,
   hid_device *device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
+  printf("HID message: %ls\n", hid_error(device));
 
   while (!device) {
     usleep(50000);
     device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
+    printf("HID message: %ls\n", hid_error(device));
     if (current_retry > MAX_RETRIES) {
       printf("Unable to open device after %d retries\n", MAX_RETRIES);
       fwrite(
@@ -91,6 +104,8 @@ int main(int argc, char* argv[]) {
       );
       fclose(log_file);
       free(log_filepath);
+      hid_close(device);
+      hid_exit();
       return 1;
     }
     printf("Open device retry: %d\n", current_retry);
@@ -98,8 +113,8 @@ int main(int argc, char* argv[]) {
   }
 
   int retval = 0;
-  unsigned char buf[1] = {arg};
-  res = hid_write(device, buf, 1);
+  unsigned char buf[BUFFER_LENGTH] = {arg};
+  res = hid_write(device, buf, BUFFER_LENGTH);
 
   if (res < 0) {
     printf("Unable to write()\n");
@@ -113,6 +128,58 @@ int main(int argc, char* argv[]) {
     retval = 1;
   } else {
     fwrite(SUCCESS_MESSAGE, 1, strlen(SUCCESS_MESSAGE), log_file);
+
+    hid_set_nonblocking(device, 1);
+
+    res = 0;
+    for (int i = 0; i < MAX_TIMEOUT; i++) {
+      res = hid_read(device, buf, BUFFER_LENGTH);
+      if (res != 0) {
+        break;
+      }
+      usleep(1000);
+    }
+
+    for (int i = 0; i < 4; i++)
+      printf("buf[%d]: %d\n", i, buf[i]);
+
+    if (res < 0) {
+      printf("Unable to read()\n");
+      printf("Error: %ls\n", hid_error(device));
+      fwrite(
+        DEVICE_READ_FAIL_MESSAGE,
+        1,
+        strlen(DEVICE_READ_FAIL_MESSAGE),
+        log_file
+      );
+    } else {
+      int message = buf[1];
+      switch (message) {
+        case GAMING_MODE:
+          fwrite(
+            GAMING_MODE_MESSAGE,
+            1,
+            strlen(GAMING_MODE_MESSAGE),
+            log_file
+          );
+          break;
+        case STENO_MODE:
+          fwrite(
+            STENO_MODE_MESSAGE,
+            1,
+            strlen(STENO_MODE_MESSAGE),
+            log_file
+          );
+          break;
+        default:
+          fwrite(
+            HID_READ_BAD_VALUE_MESSAGE,
+            1,
+            strlen(HID_READ_BAD_VALUE_MESSAGE),
+            log_file
+          );
+      }
+    }
   }
 
   fclose(log_file);
