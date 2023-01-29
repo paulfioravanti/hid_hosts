@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
   int res = hid_init();
   if (res < 0) {
     printf("Unable to initialize hidapi library\n");
-    fwrite(HID_INIT_FAIL_MESSAGE, 1, strlen(HID_INIT_FAIL_MESSAGE), log_file);
+    log_message(HID_INIT_FAIL_MESSAGE, log_file);
     fclose(log_file);
     free(log_filepath);
     hid_exit();
@@ -30,12 +30,7 @@ int main(int argc, char* argv[]) {
 
   hid_device *device = open_device();
   if (!device) {
-    fwrite(
-      DEVICE_OPEN_FAIL_MESSAGE,
-      1,
-      strlen(DEVICE_OPEN_FAIL_MESSAGE),
-      log_file
-    );
+    log_message(DEVICE_OPEN_FAIL_MESSAGE, log_file);
     fclose(log_file);
     free(log_filepath);
     hid_exit();
@@ -49,12 +44,7 @@ int main(int argc, char* argv[]) {
   if (res < 0) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
-    fwrite(
-      DEVICE_WRITE_FAIL_MESSAGE,
-      1,
-      strlen(DEVICE_WRITE_FAIL_MESSAGE),
-      log_file
-    );
+    log_message(DEVICE_WRITE_FAIL_MESSAGE, log_file);
     retval = 1;
   } else {
     hid_set_nonblocking(device, 1);
@@ -143,12 +133,7 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file)
   if (res < 0) {
     printf("Unable to read()\n");
     printf("Error: %ls\n", hid_error(device));
-    fwrite(
-      DEVICE_READ_FAIL_MESSAGE,
-      1,
-      strlen(DEVICE_READ_FAIL_MESSAGE),
-      log_file
-    );
+    log_message(DEVICE_READ_FAIL_MESSAGE, log_file);
   } else {
     log_out_read_message(buf[1], log_file);
   }
@@ -157,27 +142,16 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file)
 void log_out_read_message(int message, FILE *log_file) {
   switch (message) {
     case GAMING_MODE:
-      fwrite(
-        GAMING_MODE_MESSAGE,
-        1,
-        strlen(GAMING_MODE_MESSAGE),
-        log_file
-      );
+      log_message(GAMING_MODE_MESSAGE, log_file);
       break;
     case STENO_MODE:
-      fwrite(
-        STENO_MODE_MESSAGE,
-        1,
-        strlen(STENO_MODE_MESSAGE),
-        log_file
-      );
+      log_message(STENO_MODE_MESSAGE, log_file);
       break;
     default:
-      fwrite(
-        HID_READ_BAD_VALUE_MESSAGE,
-        1,
-        strlen(HID_READ_BAD_VALUE_MESSAGE),
-        log_file
-      );
+      log_message(HID_READ_BAD_VALUE_MESSAGE, log_file);
   }
+}
+
+void log_message(const char *message, FILE *log_file) {
+  fwrite(message, 1, strlen(message), log_file);
 }

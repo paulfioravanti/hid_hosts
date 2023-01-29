@@ -33,4 +33,5 @@ long parse_arguments(int argc, char* argv[]);
 char* generate_log_filepath();
 hid_device* open_device();
 void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file);
+void log_message(const char *message, FILE *log_file);
 void log_out_read_message(int message, FILE *log_file);
