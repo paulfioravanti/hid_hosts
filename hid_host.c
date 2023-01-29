@@ -19,6 +19,8 @@ enum {
 // REF: https://github.com/rabbitgrowth/plover-tapey-tape
 static const char LOG_FILENAME[] =
   "/Library/Application Support/plover/tapey_tape.txt";
+static const char HID_INIT_FAIL_MESSAGE[] =
+  "ERROR: Unable to initialize HID API library\n";
 static const char DEVICE_OPEN_FAIL_MESSAGE[] =
   "ERROR: Exhausted attempts to open HID device\n";
 static const char DEVICE_WRITE_FAIL_MESSAGE[] =
@@ -66,6 +68,9 @@ int main(int argc, char* argv[]) {
   int res = hid_init();
   if (res < 0) {
     printf("Unable to initialize hidapi library\n");
+    fwrite(HID_INIT_FAIL_MESSAGE, 1, strlen(HID_INIT_FAIL_MESSAGE), log_file);
+    fclose(log_file);
+    free(log_filepath);
     return 1;
   }
 
