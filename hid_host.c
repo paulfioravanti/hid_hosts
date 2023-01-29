@@ -58,15 +58,12 @@ int main(int argc, char* argv[]) {
     retval = 1;
   } else {
     hid_set_nonblocking(device, 1);
-    read_message(device, buf, log_file);
+    read_device_message(device, buf, log_file);
   }
 
   fclose(log_file);
   free(log_filepath);
-
-  // Close the device
   hid_close(device);
-  // Finalize the hidapi library
   hid_exit();
   return retval;
 }
@@ -133,7 +130,7 @@ hid_device* open_device() {
   return device;
 }
 
-void read_message(hid_device *device, unsigned char* buf, FILE *log_file) {
+void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file) {
   int res;
   for (int i = 0; i < MAX_TIMEOUT; i++) {
     res = hid_read(device, buf, BUFFER_LENGTH);

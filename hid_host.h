@@ -13,12 +13,6 @@ enum {
   STENO_MODE = 4
 };
 
-long parse_arguments(int argc, char* argv[]);
-char* generate_log_filepath();
-hid_device* open_device();
-void read_message(hid_device *device, unsigned char* buf, FILE *log_file);
-void log_out_read_message(int message, FILE *log_file);
-
 // REF: https://github.com/rabbitgrowth/plover-tapey-tape
 static const char LOG_FILENAME[] =
   "/Library/Application Support/plover/tapey_tape.txt";
@@ -34,3 +28,9 @@ static const char HID_READ_BAD_VALUE_MESSAGE[] =
   "ERROR: Unexpected value received from HID device\n";
 static const char GAMING_MODE_MESSAGE[] = "GAMING MODE activated!\n";
 static const char STENO_MODE_MESSAGE[] = "STENO MODE activated!\n";
+
+long parse_arguments(int argc, char* argv[]);
+char* generate_log_filepath();
+hid_device* open_device();
+void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file);
+void log_out_read_message(int message, FILE *log_file);
