@@ -7,6 +7,8 @@
 #include <assert.h> // assert
 #include <hidapi.h> // hid_*
 
+long parse_arguments(int argc, char* argv[]);
+
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
 #define VENDOR_ID  0xFEED
@@ -39,31 +41,8 @@ static const char GAMING_MODE_MESSAGE[] = "GAMING MODE activated!\n";
 static const char STENO_MODE_MESSAGE[] = "STENO MODE activated!\n";
 
 int main(int argc, char* argv[]) {
-  // Requires only one argument
-  if (argc != 2) {
-    printf("Only one argument allowed\n");
-    return 1;
-  }
-  // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
-  if (strlen(argv[1]) == 0) {
-    printf("Argument cannot be an empty string\n");
-    return 1; // empty string
-  }
-
-  char* string_end;
-  errno = 0;
-  // REF: https://devdocs.io/c/string/byte/strtol
-  long arg = strtol(argv[1], &string_end, 10);
-  // Error out if:
-  // - an invalid character was found before the end of the string
-  // - overflow or underflow errors occurred
-  if (*string_end != '\0' || errno != 0) {
-    printf("Invalid character %s\n", argv[1]);
-    return 1;
-  }
-  // Check that the number is within the limited capacity of an int
-  if (arg < INT_MIN || arg > INT_MAX) {
-    printf("Integer value is out of bounds");
+  long arg = parse_arguments(argc, argv);
+  if (arg == -1) {
     return 1;
   }
 
@@ -190,4 +169,36 @@ int main(int argc, char* argv[]) {
   // Finalize the hidapi library
   hid_exit();
   return retval;
+}
+
+long parse_arguments(int argc, char* argv[]) {
+  // Requires only one argument
+  if (argc != 2) {
+    printf("ERROR: Must have only one argument\n");
+    return -1;
+  }
+  // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
+  if (strlen(argv[1]) == 0) {
+    printf("ERROR: Argument cannot be an empty string\n");
+    return -1; // empty string
+  }
+
+  char* string_end;
+  errno = 0;
+  // REF: https://devdocs.io/c/string/byte/strtol
+  long arg = strtol(argv[1], &string_end, 10);
+  // Error out if:
+  // - an invalid character was found before the end of the string
+  // - overflow or underflow errors occurred
+  if (*string_end != '\0' || errno != 0) {
+    printf("ERROR: Invalid character %s\n", argv[1]);
+    return -1;
+  }
+  // Check that the number is within the limited capacity of an int
+  if (arg < INT_MIN || arg > INT_MAX) {
+    printf("ERROR: Integer value is out of bounds");
+    return -1;
+  }
+
+  return arg;
 }
