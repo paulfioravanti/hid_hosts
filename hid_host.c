@@ -10,7 +10,7 @@
 int main(int argc, char* argv[]) {
   long arg = parse_arguments(argc, argv);
   if (arg == -1) {
-    return 1;
+    return -1;
   }
 
   char *log_filepath = generate_log_filepath();
@@ -23,14 +23,14 @@ int main(int argc, char* argv[]) {
     printf("Unable to initialize hidapi library\n");
     log_message(HID_INIT_FAIL_MESSAGE, log_file);
     clean_up(log_filepath, log_file);
-    return 1;
+    return -1;
   }
 
   hid_device *device = open_device();
   if (!device) {
     log_message(DEVICE_OPEN_FAIL_MESSAGE, log_file);
     clean_up(log_filepath, log_file);
-    return 1;
+    return -1;
   }
 
   int retval = 0;
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
     log_message(DEVICE_WRITE_FAIL_MESSAGE, log_file);
-    retval = 1;
+    retval = -1;
   } else {
     hid_set_nonblocking(device, 1);
     read_device_message(device, buf, log_file);
@@ -99,7 +99,7 @@ hid_device* open_device() {
   printf("HID message: %ls\n", hid_error(device));
 
   while (!device) {
-    usleep(50000);
+    usleep(HID_OPEN_TIMEOUT_MICROSECONDS);
     device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
     printf("HID message: %ls\n", hid_error(device));
     if (current_retry > MAX_RETRIES) {
@@ -116,12 +116,12 @@ hid_device* open_device() {
 
 void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file) {
   int res;
-  for (int i = 0; i < MAX_TIMEOUT; i++) {
+  for (int i = 0; i < MAX_TIMEOUT_ATTEMPTS; i++) {
     res = hid_read(device, buf, BUFFER_LENGTH);
     if (res != 0) {
       break;
     }
-    usleep(1000);
+    usleep(READ_TIMEOUT_MICROSECONDS);
   }
 
   if (res < 0) {
