@@ -127,11 +127,11 @@ int main(int argc, char* argv[]) {
     );
     retval = 1;
   } else {
-    fwrite(SUCCESS_MESSAGE, 1, strlen(SUCCESS_MESSAGE), log_file);
+    // DEBUG
+    // fwrite(SUCCESS_MESSAGE, 1, strlen(SUCCESS_MESSAGE), log_file);
 
     hid_set_nonblocking(device, 1);
 
-    res = 0;
     for (int i = 0; i < MAX_TIMEOUT; i++) {
       res = hid_read(device, buf, BUFFER_LENGTH);
       if (res != 0) {
@@ -140,8 +140,9 @@ int main(int argc, char* argv[]) {
       usleep(1000);
     }
 
-    for (int i = 0; i < 4; i++)
-      printf("buf[%d]: %d\n", i, buf[i]);
+    // DEBUG
+    // for (int i = 0; i < 4; i++)
+    //   printf("buf[%d]: %d\n", i, buf[i]);
 
     if (res < 0) {
       printf("Unable to read()\n");
@@ -153,8 +154,7 @@ int main(int argc, char* argv[]) {
         log_file
       );
     } else {
-      int message = buf[1];
-      switch (message) {
+      switch (buf[1]) {
         case GAMING_MODE:
           fwrite(
             GAMING_MODE_MESSAGE,
