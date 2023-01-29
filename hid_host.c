@@ -4,7 +4,7 @@
 #include <errno.h> // errno
 #include <limits.h> // INT_MIN, INT_MAX
 #include <unistd.h> // usleep
-#include <hidapi.h>
+#include <hidapi.h> // hid_*
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
@@ -63,17 +63,19 @@ int main(int argc, char* argv[]) {
     current_retry++;
   }
 
+  int retval = 0;
   unsigned char buf[1] = {arg};
   res = hid_write(device, buf, 1);
 
   if (res < 0) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
+    retval = 1;
   }
 
   // Close the device
   hid_close(device);
   // Finalize the hidapi library
   hid_exit();
-  return 0;
+  return retval;
 }
