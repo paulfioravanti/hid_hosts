@@ -5,41 +5,7 @@
 #include <limits.h> // INT_MAX, INT_MIN
 #include <unistd.h> // usleep
 #include <assert.h> // assert
-#include <hidapi.h> // hid_*
-
-long parse_arguments(int argc, char* argv[]);
-char* generate_log_filepath();
-hid_device* open_device();
-void log_out_read_message(int message, FILE *log_file);
-
-// VID and PID for Georgi
-// REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
-#define VENDOR_ID  0xFEED
-#define PRODUCT_ID 0x1337
-
-enum {
-  BUFFER_LENGTH = 2,
-  GAMING_MODE = 3,
-  MAX_RETRIES = 20,
-  MAX_TIMEOUT = 500,
-  STENO_MODE = 4
-};
-
-// REF: https://github.com/rabbitgrowth/plover-tapey-tape
-static const char LOG_FILENAME[] =
-  "/Library/Application Support/plover/tapey_tape.txt";
-static const char HID_INIT_FAIL_MESSAGE[] =
-  "ERROR: Unable to initialize HID API library\n";
-static const char DEVICE_OPEN_FAIL_MESSAGE[] =
-  "ERROR: Failed to open HID device\n";
-static const char DEVICE_WRITE_FAIL_MESSAGE[] =
-  "ERROR: Unable to write to HID device\n";
-static const char DEVICE_READ_FAIL_MESSAGE[] =
-  "ERROR: Unable to read from HID device\n";
-static const char HID_READ_BAD_VALUE_MESSAGE[] =
-  "ERROR: Unexpected value received from HID device\n";
-static const char GAMING_MODE_MESSAGE[] = "GAMING MODE activated!\n";
-static const char STENO_MODE_MESSAGE[] = "STENO MODE activated!\n";
+#include "hid_host.h"
 
 int main(int argc, char* argv[]) {
   long arg = parse_arguments(argc, argv);
@@ -92,27 +58,7 @@ int main(int argc, char* argv[]) {
     retval = 1;
   } else {
     hid_set_nonblocking(device, 1);
-
-    for (int i = 0; i < MAX_TIMEOUT; i++) {
-      res = hid_read(device, buf, BUFFER_LENGTH);
-      if (res != 0) {
-        break;
-      }
-      usleep(1000);
-    }
-
-    if (res < 0) {
-      printf("Unable to read()\n");
-      printf("Error: %ls\n", hid_error(device));
-      fwrite(
-        DEVICE_READ_FAIL_MESSAGE,
-        1,
-        strlen(DEVICE_READ_FAIL_MESSAGE),
-        log_file
-      );
-    } else {
-      log_out_read_message(buf[1], log_file);
-    }
+    read_message(device, buf, log_file);
   }
 
   fclose(log_file);
@@ -185,6 +131,30 @@ hid_device* open_device() {
   }
 
   return device;
+}
+
+void read_message(hid_device *device, unsigned char* buf, FILE *log_file) {
+  int res;
+  for (int i = 0; i < MAX_TIMEOUT; i++) {
+    res = hid_read(device, buf, BUFFER_LENGTH);
+    if (res != 0) {
+      break;
+    }
+    usleep(1000);
+  }
+
+  if (res < 0) {
+    printf("Unable to read()\n");
+    printf("Error: %ls\n", hid_error(device));
+    fwrite(
+      DEVICE_READ_FAIL_MESSAGE,
+      1,
+      strlen(DEVICE_READ_FAIL_MESSAGE),
+      log_file
+    );
+  } else {
+    log_out_read_message(buf[1], log_file);
+  }
 }
 
 void log_out_read_message(int message, FILE *log_file) {
