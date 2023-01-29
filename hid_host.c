@@ -9,6 +9,7 @@
 
 long parse_arguments(int argc, char* argv[]);
 char* generate_log_filepath();
+hid_device* open_device();
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
@@ -29,7 +30,7 @@ static const char LOG_FILENAME[] =
 static const char HID_INIT_FAIL_MESSAGE[] =
   "ERROR: Unable to initialize HID API library\n";
 static const char DEVICE_OPEN_FAIL_MESSAGE[] =
-  "ERROR: Exhausted attempts to open HID device\n";
+  "ERROR: Failed to open HID device\n";
 static const char DEVICE_WRITE_FAIL_MESSAGE[] =
   "ERROR: Unable to write to HID device\n";
 static const char DEVICE_READ_FAIL_MESSAGE[] =
@@ -63,31 +64,18 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  int current_retry = 1;
-  // Open the device using the VID, PID,
-  hid_device *device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
-  printf("HID message: %ls\n", hid_error(device));
-
-  while (!device) {
-    usleep(50000);
-    device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
-    printf("HID message: %ls\n", hid_error(device));
-    if (current_retry > MAX_RETRIES) {
-      printf("Unable to open device after %d retries\n", MAX_RETRIES);
-      fwrite(
-        DEVICE_OPEN_FAIL_MESSAGE,
-        1,
-        strlen(DEVICE_OPEN_FAIL_MESSAGE),
-        log_file
-      );
-      fclose(log_file);
-      free(log_filepath);
-      hid_close(device);
-      hid_exit();
-      return 1;
-    }
-    printf("Open device retry: %d\n", current_retry);
-    current_retry++;
+  hid_device *device = open_device();
+  if (!device) {
+    fwrite(
+      DEVICE_OPEN_FAIL_MESSAGE,
+      1,
+      strlen(DEVICE_OPEN_FAIL_MESSAGE),
+      log_file
+    );
+    fclose(log_file);
+    free(log_filepath);
+    hid_exit();
+    return 1;
   }
 
   int retval = 0;
@@ -208,4 +196,26 @@ char* generate_log_filepath() {
   strcpy(log_filepath, home_dir);
   strcat(log_filepath, LOG_FILENAME);
   return log_filepath;
+}
+
+hid_device* open_device() {
+  int current_retry = 1;
+  // Open the device using the VID, PID,
+  hid_device *device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
+  printf("HID message: %ls\n", hid_error(device));
+
+  while (!device) {
+    usleep(50000);
+    device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
+    printf("HID message: %ls\n", hid_error(device));
+    if (current_retry > MAX_RETRIES) {
+      printf("Unable to open device after %d retries\n", MAX_RETRIES);
+      hid_close(device);
+      return NULL;
+    }
+    printf("Open device retry: %d\n", current_retry);
+    current_retry++;
+  }
+
+  return device;
 }
