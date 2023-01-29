@@ -22,18 +22,14 @@ int main(int argc, char* argv[]) {
   if (res < 0) {
     printf("Unable to initialize hidapi library\n");
     log_message(HID_INIT_FAIL_MESSAGE, log_file);
-    fclose(log_file);
-    free(log_filepath);
-    hid_exit();
+    clean_up(log_filepath, log_file);
     return 1;
   }
 
   hid_device *device = open_device();
   if (!device) {
     log_message(DEVICE_OPEN_FAIL_MESSAGE, log_file);
-    fclose(log_file);
-    free(log_filepath);
-    hid_exit();
+    clean_up(log_filepath, log_file);
     return 1;
   }
 
@@ -51,10 +47,8 @@ int main(int argc, char* argv[]) {
     read_device_message(device, buf, log_file);
   }
 
-  fclose(log_file);
-  free(log_filepath);
   hid_close(device);
-  hid_exit();
+  clean_up(log_filepath, log_file);
   return retval;
 }
 
@@ -154,4 +148,10 @@ void log_out_read_message(int message, FILE *log_file) {
 
 void log_message(const char *message, FILE *log_file) {
   fwrite(message, 1, strlen(message), log_file);
+}
+
+void clean_up(char *log_filepath, FILE *log_file) {
+  fclose(log_file);
+  free(log_filepath);
+  hid_exit();
 }
