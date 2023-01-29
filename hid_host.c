@@ -1,15 +1,30 @@
-#include <stdio.h> // printf
-#include <stdlib.h> // strtol
-#include <string.h> // strlen
-#include <errno.h> // errno
-#include <limits.h> // INT_MIN, INT_MAX
+#include <stdio.h>  // FILE, fopen, printf
+#include <stdlib.h> // getenv, strtol
+#include <string.h> // strcat, strcpy, strlen
+#include <errno.h>  // errno
+#include <limits.h> // INT_MAX, INT_MIN
 #include <unistd.h> // usleep
+#include <assert.h> // assert
 #include <hidapi.h> // hid_*
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
 #define VENDOR_ID  0xFEED
 #define PRODUCT_ID 0x1337
+
+enum {
+  MAX_RETRIES = 20
+};
+
+// REF: https://github.com/rabbitgrowth/plover-tapey-tape
+static const char LOG_FILENAME[] =
+  "/Library/Application Support/plover/tapey_tape.txt";
+static const char DEVICE_OPEN_FAIL_MESSAGE[] =
+  "ERROR: Exhausted attempts to open HID device\n";
+static const char DEVICE_WRITE_FAIL_MESSAGE[] =
+  "ERROR: Unable to write to HID device\n";
+static const char SUCCESS_MESSAGE[] =
+  "SUCCESS: HID message sent successfully\n";
 
 int main(int argc, char* argv[]) {
   // Requires only one argument
@@ -40,6 +55,13 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  char *home_dir = getenv("HOME");
+  char *log_filepath = malloc(strlen(home_dir) + strlen(LOG_FILENAME) + 1);
+  strcpy(log_filepath, home_dir);
+  strcat(log_filepath, LOG_FILENAME);
+  FILE *log_file = fopen(log_filepath, "a");
+  assert(log_file);
+
   // Initialize the hidapi library
   int res = hid_init();
   if (res < 0) {
@@ -47,7 +69,6 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  int max_retries = 20;
   int current_retry = 1;
   // Open the device using the VID, PID,
   hid_device* device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
@@ -55,8 +76,16 @@ int main(int argc, char* argv[]) {
   while (!device) {
     usleep(50000);
     device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
-    if (current_retry > max_retries) {
-      printf("Unable to open device after %d retries\n", max_retries);
+    if (current_retry > MAX_RETRIES) {
+      printf("Unable to open device after %d retries\n", MAX_RETRIES);
+      fwrite(
+        DEVICE_OPEN_FAIL_MESSAGE,
+        1,
+        strlen(DEVICE_OPEN_FAIL_MESSAGE),
+        log_file
+      );
+      fclose(log_file);
+      free(log_filepath);
       return 1;
     }
     printf("Open device retry: %d\n", current_retry);
@@ -70,8 +99,19 @@ int main(int argc, char* argv[]) {
   if (res < 0) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
+    fwrite(
+      DEVICE_WRITE_FAIL_MESSAGE,
+      1,
+      strlen(DEVICE_WRITE_FAIL_MESSAGE),
+      log_file
+    );
     retval = 1;
+  } else {
+    fwrite(SUCCESS_MESSAGE, 1, strlen(SUCCESS_MESSAGE), log_file);
   }
+
+  fclose(log_file);
+  free(log_filepath);
 
   // Close the device
   hid_close(device);
