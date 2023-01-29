@@ -8,6 +8,7 @@
 #include <hidapi.h> // hid_*
 
 long parse_arguments(int argc, char* argv[]);
+char* generate_log_filepath();
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
@@ -40,16 +41,14 @@ static const char SUCCESS_MESSAGE[] =
 static const char GAMING_MODE_MESSAGE[] = "GAMING MODE activated!\n";
 static const char STENO_MODE_MESSAGE[] = "STENO MODE activated!\n";
 
+
 int main(int argc, char* argv[]) {
   long arg = parse_arguments(argc, argv);
   if (arg == -1) {
     return 1;
   }
 
-  char *home_dir = getenv("HOME");
-  char *log_filepath = malloc(strlen(home_dir) + strlen(LOG_FILENAME) + 1);
-  strcpy(log_filepath, home_dir);
-  strcat(log_filepath, LOG_FILENAME);
+  char *log_filepath = generate_log_filepath();
   FILE *log_file = fopen(log_filepath, "a");
   assert(log_file);
 
@@ -201,4 +200,12 @@ long parse_arguments(int argc, char* argv[]) {
   }
 
   return arg;
+}
+
+char* generate_log_filepath() {
+  char *home_dir = getenv("HOME");
+  char *log_filepath = malloc(strlen(home_dir) + strlen(LOG_FILENAME) + 1);
+  strcpy(log_filepath, home_dir);
+  strcat(log_filepath, LOG_FILENAME);
+  return log_filepath;
 }
