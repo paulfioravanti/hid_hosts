@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 
   int current_retry = 1;
   // Open the device using the VID, PID,
-  hid_device* device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
+  hid_device *device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
 
   while (!device) {
     usleep(50000);
