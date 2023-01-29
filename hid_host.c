@@ -38,8 +38,6 @@ static const char DEVICE_READ_FAIL_MESSAGE[] =
   "ERROR: Unable to read from HID device\n";
 static const char HID_READ_BAD_VALUE_MESSAGE[] =
   "ERROR: Unexpected value received from HID device\n";
-static const char SUCCESS_MESSAGE[] =
-  "SUCCESS: HID message sent successfully\n";
 static const char GAMING_MODE_MESSAGE[] = "GAMING MODE activated!\n";
 static const char STENO_MODE_MESSAGE[] = "STENO MODE activated!\n";
 
@@ -93,9 +91,6 @@ int main(int argc, char* argv[]) {
     );
     retval = 1;
   } else {
-    // DEBUG
-    // fwrite(SUCCESS_MESSAGE, 1, strlen(SUCCESS_MESSAGE), log_file);
-
     hid_set_nonblocking(device, 1);
 
     for (int i = 0; i < MAX_TIMEOUT; i++) {
@@ -105,10 +100,6 @@ int main(int argc, char* argv[]) {
       }
       usleep(1000);
     }
-
-    // DEBUG
-    // for (int i = 0; i < 4; i++)
-    //   printf("buf[%d]: %d\n", i, buf[i]);
 
     if (res < 0) {
       printf("Unable to read()\n");
