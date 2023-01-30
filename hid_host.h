@@ -19,17 +19,19 @@ enum {
 static const char LOG_FILENAME[] =
   "/Library/Application Support/plover/tapey_tape.txt";
 static const char HID_INIT_FAIL_MESSAGE[] =
-  "ERROR: Unable to initialize HID API library\n";
+  "ERROR |       ლ(ಠ_ಠ ლ)        | Unable to initialize HID API library\n";
 static const char DEVICE_OPEN_FAIL_MESSAGE[] =
-  "ERROR: Failed to open HID device\n";
+  "ERROR |     ( ╯°□°)╯ ┻━━┻     | Failed to open HID device\n";
 static const char DEVICE_WRITE_FAIL_MESSAGE[] =
-  "ERROR: Unable to write to HID device\n";
+  "ERROR |        (＃`Д´)        | Unable to write to HID device\n";
 static const char DEVICE_READ_FAIL_MESSAGE[] =
-  "ERROR: Unable to read from HID device\n";
+  "ERROR |        (`皿´＃)       | Unable to read from HID device\n";
 static const char HID_READ_BAD_VALUE_MESSAGE[] =
-  "ERROR: Unexpected value received from HID device\n";
-static const char GAMING_MODE_MESSAGE[] = "GAMING MODE activated!\n";
-static const char STENO_MODE_MESSAGE[] = "STENO MODE activated!\n";
+  "ERROR |        (￣ω￣;)       | Unexpected value received from HID device\n";
+static const char GAMING_MODE_MESSAGE[] =
+  "GAMING|🎮(❁´ω`❁)　✧٩(ˊωˋ*)و✧🎮| GAMING mode activated!\n";
+static const char STENO_MODE_MESSAGE[] =
+  "STENO |⌨️ ｷﾀ━━━━━(ﾟ∀ﾟ)━━━━━!!⌨️ | STENO mode activated!\n";
 
 long parse_arguments(int argc, char* argv[]);
 char* generate_log_filepath();
