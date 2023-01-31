@@ -21,7 +21,7 @@ static const char LOG_FILENAME[] =
 static const char HID_INIT_FAIL_MESSAGE[] =
   "ERROR |       ლ(ಠ_ಠ ლ)        | Unable to initialize HID API library\n";
 static const char DEVICE_OPEN_FAIL_MESSAGE[] =
-  "ERROR |     ( ╯°□°)╯ ┻━━┻     | Failed to open HID device\n";
+  "ERROR |   💢( ╯°□°)╯ ┻━━┻     | Failed to open HID device\n";
 static const char DEVICE_WRITE_FAIL_MESSAGE[] =
   "ERROR |        (＃`Д´)        | Unable to write to HID device\n";
 static const char DEVICE_READ_FAIL_MESSAGE[] =
