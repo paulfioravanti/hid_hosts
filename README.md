@@ -6,11 +6,11 @@ specification.
 
 Basically, I want to trigger keyboard functionality from external devices, like
 USB foot pedals etc, and QMK's [Raw HID][] feature allows this to happen. But, a
-"host" is required to send the messages/payloads to the keyboard.
+"host" is required to send and receive the messages to the keyboard.
 
-The code is solely concerned with the sending of payloads to and from
+The code is currently solely concerned with passing messages to and from
 [Georgi][] stenographic keyboards (see the `raw_hid_receive` function definition
-in [my Georgi keymap][] to see how the payload is received, handled, and then
+in [my Georgi keymap][] to see how the message is received, handled, and then
 sent back to the computer), but it can be adapted for any keyboard's QMK
 firmware:
 
@@ -22,7 +22,7 @@ firmware:
 
 ## Prerequisites
 
-The [HIDAPI][] library is required to open up the HID communication channels, so
+The [HIDAPI][] library is required to open up HID communication channels, so
 install it with your operating system's package manager. HIDAPI provides some
 minimal information about this in their [Installing HIDAPI][] section, but if
 you are using macOS, you can install it with [Homebrew][]:
@@ -38,7 +38,7 @@ code to make a [C][] version. Both versions are included in this repository.
 
 ### C
 
-This version of the host I use and will make improvements to moving forward.
+This version of the host I use, and changes/improvements will be focused there.
 
 #### Prerequisites
 
