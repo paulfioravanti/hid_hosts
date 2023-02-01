@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     log_message(DEVICE_WRITE_FAIL_MESSAGE, log_file);
     retval = -1;
   } else {
-    hid_set_nonblocking(device, 1);
+    hid_set_nonblocking(device, ENABLE_NONBLOCKING);
     read_device_message(device, buf, log_file);
   }
 
