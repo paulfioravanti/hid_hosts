@@ -33,7 +33,6 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  int retval = 0;
   unsigned char buf[BUFFER_LENGTH] = {arg};
   res = hid_write(device, buf, BUFFER_LENGTH);
 
@@ -41,7 +40,6 @@ int main(int argc, char* argv[]) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
     log_message(DEVICE_WRITE_FAIL_MESSAGE, log_file);
-    retval = -1;
   } else {
     hid_set_nonblocking(device, ENABLE_NONBLOCKING);
     read_device_message(device, buf, log_file);
@@ -49,7 +47,7 @@ int main(int argc, char* argv[]) {
 
   hid_close(device);
   clean_up(log_filepath, log_file);
-  return retval;
+  return 0;
 }
 
 long parse_arguments(int argc, char* argv[]) {
@@ -93,7 +91,7 @@ char* generate_log_filepath() {
 }
 
 hid_device* open_device() {
-  int current_retry = 1;
+  int num_open_retries = 0;
   // Open the device using the VID, PID,
   hid_device *device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
   printf("HID message: %ls\n", hid_error(device));
@@ -102,33 +100,46 @@ hid_device* open_device() {
     usleep(HID_OPEN_TIMEOUT_MICROSECONDS);
     device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
     printf("HID message: %ls\n", hid_error(device));
-    if (current_retry > MAX_RETRIES) {
-      printf("Unable to open device after %d retries\n", MAX_RETRIES);
+
+    num_open_retries++;
+    printf("Device open retries: %d\n", num_open_retries);
+
+    if (num_open_retries >= MAX_HID_OPEN_RETRIES) {
+      printf("Unable to open device after %d retries\n", MAX_HID_OPEN_RETRIES);
       hid_close(device);
       return NULL;
     }
-    printf("Open device retry: %d\n", current_retry);
-    current_retry++;
   }
 
   return device;
 }
 
 void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file) {
-  int res;
-  for (int i = 0; i < MAX_TIMEOUT_ATTEMPTS; i++) {
+  int res = 0;
+  int num_read_retries = 0;
+  while (res == 0) {
     res = hid_read(device, buf, BUFFER_LENGTH);
-    if (res != 0) {
+
+    if (res == 0) {
+      printf("Waiting to read()...\n");
+    }
+
+    if (res < 0) {
+      printf("Unable to read()\n");
+      printf("Error: %ls\n", hid_error(device));
+      log_message(DEVICE_READ_FAIL_MESSAGE, log_file);
+      break;
+    }
+
+    num_read_retries++;
+    if (num_read_retries >= MAX_READ_RETRIES) {
+      printf("Unable to read device after %d retries\n", MAX_READ_RETRIES);
       break;
     }
     usleep(READ_TIMEOUT_MICROSECONDS);
   }
 
-  if (res < 0) {
-    printf("Unable to read()\n");
-    printf("Error: %ls\n", hid_error(device));
-    log_message(DEVICE_READ_FAIL_MESSAGE, log_file);
-  } else {
+  if (res > 0) {
     log_out_read_message(buf[1], log_file);
   }
 }
