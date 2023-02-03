@@ -6,4 +6,4 @@
 # gets handled:
 # https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/keymap.c
 
-./hid_host "$1" &
+./hid_host "$1"
