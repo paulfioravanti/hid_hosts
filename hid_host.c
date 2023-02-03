@@ -93,6 +93,7 @@ char* generate_log_filepath() {
 hid_device* open_device() {
   int num_open_retries = 0;
   // Open the device using the VID, PID,
+  printf("Attempting to open()...\n");
   hid_device *device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
   printf("HID message: %ls\n", hid_error(device));
 
@@ -125,8 +126,8 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file)
     }
 
     if (res < 0) {
-      printf("Unable to read()\n");
-      printf("Error: %ls\n", hid_error(device));
+      printf("Error: Unable to read()\n");
+      printf("HID message: %ls\n", hid_error(device));
       log_message(DEVICE_READ_FAIL_MESSAGE, log_file);
       break;
     }
@@ -140,6 +141,7 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file)
   }
 
   if (res > 0) {
+    printf("HID message: %ls\n", hid_error(device));
     log_out_read_message(buf[1], log_file);
   }
 }
