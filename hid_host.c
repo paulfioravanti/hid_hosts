@@ -1,10 +1,11 @@
 #include <stdio.h>  // FILE, fopen, printf
 #include <stdlib.h> // getenv, strtol
-#include <string.h> // strcat, strcpy, strlen
+#include <string.h> // memset, strcat, strcpy, strlen
 #include <errno.h>  // errno
 #include <limits.h> // INT_MAX, INT_MIN
 #include <unistd.h> // usleep
 #include <assert.h> // assert
+#include <hidapi_darwin.h> // hid_darwin_set_open_exclusive
 #include "hid_host.h"
 
 int main(int argc, char* argv[]) {
@@ -20,11 +21,14 @@ int main(int argc, char* argv[]) {
   // Initialize the hidapi library
   int res = hid_init();
   if (res < 0) {
-    printf("Unable to initialize hidapi library\n");
+    printf("Unable to initialize HIDAPI library\n");
     log_message(HID_INIT_FAIL_MESSAGE, log_file);
     clean_up(log_filepath, log_file);
     return -1;
   }
+  // REF: https://github.com/libusb/hidapi/blob/master/hidtest/test.c#L102
+  // REF: https://github.com/libusb/hidapi/blob/master/mac/hidapi_darwin.h#L68
+  hid_darwin_set_open_exclusive(HID_DARWIN_NON_EXCLUSIVE_MODE);
 
   hid_device *device = open_device();
   if (!device) {
@@ -33,7 +37,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  unsigned char buf[BUFFER_LENGTH] = {arg};
+  unsigned char buf[BUFFER_LENGTH];
+  memset(buf, 0, sizeof(buf));
+  buf[0] = arg;
+
   res = hid_write(device, buf, BUFFER_LENGTH);
 
   if (res < 0) {
@@ -98,7 +105,7 @@ hid_device* open_device() {
   printf("HID message: %ls\n", hid_error(device));
 
   while (!device) {
-    usleep(HID_OPEN_TIMEOUT_MICROSECONDS);
+    usleep(HID_OPEN_SLEEP_MICROSECONDS);
     device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
     printf("HID message: %ls\n", hid_error(device));
 
@@ -118,6 +125,7 @@ hid_device* open_device() {
 void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file) {
   int res = 0;
   int num_read_retries = 0;
+
   while (res == 0) {
     res = hid_read(device, buf, BUFFER_LENGTH);
 
@@ -128,16 +136,20 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file)
     if (res < 0) {
       printf("Error: Unable to read()\n");
       printf("HID message: %ls\n", hid_error(device));
+      print_buffer(buf);
       log_message(DEVICE_READ_FAIL_MESSAGE, log_file);
       break;
     }
 
     num_read_retries++;
-    if (num_read_retries >= MAX_READ_RETRIES) {
-      printf("Unable to read device after %d retries\n", MAX_READ_RETRIES);
+    if (num_read_retries >= MAX_HID_READ_RETRIES) {
+      printf("Unable to read device after %d retries\n", MAX_HID_READ_RETRIES);
+      printf("hid_read result was: %d\n", res);
+      print_buffer(buf);
+      log_message(DEVICE_READ_FAIL_MESSAGE, log_file);
       break;
     }
-    usleep(READ_TIMEOUT_MICROSECONDS);
+    usleep(HID_READ_SLEEP_MICROSECONDS);
   }
 
   if (res > 0) {
@@ -154,7 +166,11 @@ void log_out_read_message(int message, FILE *log_file) {
     case STENO_MODE:
       log_message(STENO_MODE_MESSAGE, log_file);
       break;
+    case NO_ACTION_TAKEN:
+      log_message(MODE_UNCHANGED_MESSAGE, log_file);
+      break;
     default:
+      printf("Message read from device: %d\n", message);
       log_message(HID_READ_BAD_VALUE_MESSAGE, log_file);
   }
 }
@@ -167,4 +183,9 @@ void clean_up(char *log_filepath, FILE *log_file) {
   fclose(log_file);
   free(log_filepath);
   hid_exit();
+}
+
+void print_buffer(unsigned char* buf) {
+  for (int i = 0; i < BUFFER_LENGTH; i++)
+    printf("%02x ", (unsigned int) buf[i]);
 }

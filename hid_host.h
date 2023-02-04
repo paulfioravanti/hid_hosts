@@ -9,10 +9,12 @@ enum {
   BUFFER_LENGTH = 2,
   ENABLE_NONBLOCKING = 1,
   GAMING_MODE = 3,
-  HID_OPEN_TIMEOUT_MICROSECONDS = 15000, // 15 ms
+  HID_DARWIN_NON_EXCLUSIVE_MODE = 0,
+  HID_OPEN_SLEEP_MICROSECONDS = 15000, // 15 ms
+  HID_READ_SLEEP_MICROSECONDS = 100000, // 100 ms
   MAX_HID_OPEN_RETRIES = 30,
-  MAX_READ_RETRIES = 30,
-  READ_TIMEOUT_MICROSECONDS = 70000, // 70 ms
+  MAX_HID_READ_RETRIES = 4,
+  NO_ACTION_TAKEN = 9,
   STENO_MODE = 4
 };
 
@@ -26,9 +28,11 @@ static const char DEVICE_OPEN_FAIL_MESSAGE[] =
 static const char DEVICE_WRITE_FAIL_MESSAGE[] =
   "ERROR |        (＃`Д´)        | Unable to write to HID device\n";
 static const char DEVICE_READ_FAIL_MESSAGE[] =
-  "ERROR |        (`皿´＃)       | Unable to read from HID device\n";
+  "ERROR |   💢(╯°益°)╯彡┻━┻     | Unable to read from HID device\n";
 static const char HID_READ_BAD_VALUE_MESSAGE[] =
   "ERROR |        (￣ω￣;)       | Unexpected value received from HID device\n";
+static const char MODE_UNCHANGED_MESSAGE[] =
+  "ERROR |        ლ(¯ロ¯ლ)       | Attempted mode change unsuccessful\n";
 static const char GAMING_MODE_MESSAGE[] =
   "GAMING|🎮(❁´ω`❁)　✧٩(ˊωˋ*)و✧🎮| GAMING mode activated!\n";
 static const char STENO_MODE_MESSAGE[] =
@@ -41,3 +45,4 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file)
 void log_message(const char *message, FILE *log_file);
 void log_out_read_message(int message, FILE *log_file);
 void clean_up(char *log_filepath, FILE *log_file);
+void print_buffer(unsigned char* buf);
