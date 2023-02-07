@@ -16,7 +16,11 @@ int main(int argc, char* argv[]) {
 
   char *log_filepath = generate_log_filepath();
   FILE *log_file = fopen(log_filepath, "a");
-  assert(log_file);
+  if (!log_file) {
+    printf("ERROR: Unable to open log file\n");
+    free(log_filepath);
+    return -1;
+  }
 
   srand(time(NULL));
   const char *error_emoji =
