@@ -161,7 +161,8 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file,
     printf("Unable to read device after %d retries\n", MAX_HID_READ_RETRIES);
     printf("hid_read result was: %d\n", res);
     print_buffer(buf);
-    message = build_log_message(ERROR_HEADER, error_emoji, DEVICE_READ_FAIL_MESSAGE);
+    message =
+      build_log_message(ERROR_HEADER, error_emoji, DEVICE_READ_FAIL_MESSAGE);
     log_message(message, log_file);
   } else if (res > 0) {
     printf("HID message: %ls\n", hid_error(device));
@@ -178,7 +179,8 @@ void log_out_read_message(int read_message, FILE *log_file, const char *error_em
   switch (read_message) {
     case GAMING_MODE:
       header = GAMING_HEADER;
-      emoji = get_random_emoji_string(GAMING_MODE_EMOJIS, NUM_GAMING_MODE_EMOJIS);
+      emoji =
+        get_random_emoji_string(GAMING_MODE_EMOJIS, NUM_GAMING_MODE_EMOJIS);
       message = GAMING_MODE_MESSAGE;
       break;
     case STENO_MODE:
