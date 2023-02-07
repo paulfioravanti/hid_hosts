@@ -101,7 +101,7 @@ hid_device* open_device() {
   int num_open_retries = 0;
   hid_device *device = NULL;
 
-  while (!device && num_open_retries < MAX_HID_OPEN_RETRIES) {
+  while (!device && num_open_retries < HID_OPEN_MAX_RETRIES) {
     printf("Attempting to open()...\n");
     device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
 
@@ -115,7 +115,7 @@ hid_device* open_device() {
   }
 
   if (!device) {
-    printf("Unable to open device after %d retries\n", MAX_HID_OPEN_RETRIES);
+    printf("Unable to open device after %d retries\n", HID_OPEN_MAX_RETRIES);
     hid_close(device);
     return NULL;
   }
@@ -128,7 +128,7 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file,
   int num_read_retries = 0;
   const char *message;
 
-  while (res == 0 && num_read_retries < MAX_HID_READ_RETRIES) {
+  while (res == 0 && num_read_retries < HID_READ_MAX_RETRIES) {
     res = hid_read(device, buf, BUFFER_LENGTH);
 
     if (res == 0) {
@@ -150,7 +150,7 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file,
   }
 
   if (res == 0) {
-    printf("Unable to read device after %d retries\n", MAX_HID_READ_RETRIES);
+    printf("Unable to read device after %d retries\n", HID_READ_MAX_RETRIES);
     printf("hid_read result was: %d\n", res);
     print_buffer(buf);
     message =
