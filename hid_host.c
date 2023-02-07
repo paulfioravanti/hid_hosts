@@ -1,11 +1,11 @@
-#include <stdio.h>  // FILE, fopen, printf
-#include <stdlib.h> // getenv, rand, strtol
-#include <string.h> // memset, strcat, strcpy, strlen
-#include <errno.h>  // errno
-#include <limits.h> // INT_MAX, INT_MIN
-#include <unistd.h> // usleep
-#include <assert.h> // assert
+#include <errno.h>         // errno
 #include <hidapi_darwin.h> // hid_darwin_set_open_exclusive
+#include <limits.h>        // INT_MAX, INT_MIN
+#include <stdio.h>         // FILE, fclose, fopen, fwrite, printf, snprintf
+#include <stdlib.h>        // free, getenv, malloc, rand, srand, strtol
+#include <string.h>        // memset, strcat, strcpy, strlen
+#include <time.h>          // time
+#include <unistd.h>        // usleep
 #include "hid_host.h"
 
 int main(int argc, char* argv[]) {

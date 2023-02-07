@@ -1,4 +1,5 @@
-#include <hidapi.h> // hid_*
+// hid_close, hid_device, hid_error, hid_exit, hid_init, hid_read, hid_write, open_device
+#include <hidapi.h>
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
