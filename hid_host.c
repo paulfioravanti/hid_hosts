@@ -1,5 +1,5 @@
 #include <stdio.h>  // FILE, fopen, printf
-#include <stdlib.h> // getenv, strtol
+#include <stdlib.h> // getenv, rand, strtol
 #include <string.h> // memset, strcat, strcpy, strlen
 #include <errno.h>  // errno
 #include <limits.h> // INT_MAX, INT_MIN
@@ -18,11 +18,18 @@ int main(int argc, char* argv[]) {
   FILE *log_file = fopen(log_filepath, "a");
   assert(log_file);
 
+  srand(time(NULL));
+  const char *error_emoji =
+    get_random_emoji_string(ERROR_EMOJIS, NUM_ERROR_EMOJIS);
+  const char *message;
+
   // Initialize the hidapi library
   int res = hid_init();
   if (res < 0) {
     printf("Unable to initialize HIDAPI library\n");
-    log_message(HID_INIT_FAIL_MESSAGE, log_file);
+    message =
+      build_log_message(ERROR_HEADER, error_emoji, HID_INIT_FAIL_MESSAGE);
+    log_message(message, log_file);
     clean_up(log_filepath, log_file);
     return -1;
   }
@@ -32,7 +39,9 @@ int main(int argc, char* argv[]) {
 
   hid_device *device = open_device();
   if (!device) {
-    log_message(DEVICE_OPEN_FAIL_MESSAGE, log_file);
+    message =
+      build_log_message(ERROR_HEADER, error_emoji, DEVICE_OPEN_FAIL_MESSAGE);
+    log_message(message, log_file);
     clean_up(log_filepath, log_file);
     return -1;
   }
@@ -46,10 +55,12 @@ int main(int argc, char* argv[]) {
   if (res < 0) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
-    log_message(DEVICE_WRITE_FAIL_MESSAGE, log_file);
+    message =
+      build_log_message(ERROR_HEADER, error_emoji, DEVICE_WRITE_FAIL_MESSAGE);
+    log_message(message, log_file);
   } else {
     hid_set_nonblocking(device, ENABLE_NONBLOCKING);
-    read_device_message(device, buf, log_file);
+    read_device_message(device, buf, log_file, error_emoji);
   }
 
   hid_close(device);
@@ -59,30 +70,23 @@ int main(int argc, char* argv[]) {
 
 long parse_arguments(int argc, char* argv[]) {
   // Requires only one argument
-  if (argc != 2) {
-    printf("ERROR: Must have only one argument\n");
+  // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
+  if (argc != 2 || strlen(argv[1]) == 0) {
+    printf("ERROR: Must provide a single non-empty argument\n");
     return -1;
   }
-  // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
-  if (strlen(argv[1]) == 0) {
-    printf("ERROR: Argument cannot be an empty string\n");
-    return -1; // empty string
-  }
 
-  char* string_end;
+  char* end_ptr;
   errno = 0;
   // REF: https://devdocs.io/c/string/byte/strtol
-  long arg = strtol(argv[1], &string_end, 10);
+  long arg = strtol(argv[1], &end_ptr, 10);
+
   // Error out if:
   // - an invalid character was found before the end of the string
   // - overflow or underflow errors occurred
-  if (*string_end != '\0' || errno != 0) {
-    printf("ERROR: Invalid character %s\n", argv[1]);
-    return -1;
-  }
-  // Check that the number is within the limited capacity of an int
-  if (arg < INT_MIN || arg > INT_MAX) {
-    printf("ERROR: Integer value is out of bounds");
+  // - number is outside the limited capacity of an int
+  if (*end_ptr != '\0' || errno != 0 || arg < INT_MIN || arg > INT_MAX) {
+    printf("ERROR: Invalid argument %s\n", argv[1]);
     return -1;
   }
 
@@ -99,80 +103,114 @@ char* generate_log_filepath() {
 
 hid_device* open_device() {
   int num_open_retries = 0;
-  // Open the device using the VID, PID,
-  printf("Attempting to open()...\n");
-  hid_device *device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
-  printf("HID message: %ls\n", hid_error(device));
+  hid_device *device = NULL;
 
-  while (!device) {
-    usleep(HID_OPEN_SLEEP_MICROSECONDS);
+  while (!device && num_open_retries < MAX_HID_OPEN_RETRIES) {
+    printf("Attempting to open()...\n");
     device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
-    printf("HID message: %ls\n", hid_error(device));
 
-    num_open_retries++;
-    printf("Device open retries: %d\n", num_open_retries);
-
-    if (num_open_retries >= MAX_HID_OPEN_RETRIES) {
-      printf("Unable to open device after %d retries\n", MAX_HID_OPEN_RETRIES);
-      hid_close(device);
-      return NULL;
+    if (device) {
+      break;
     }
+
+    printf("HID message: %ls\n", hid_error(device));
+    printf("Device open retries: %d\n", ++num_open_retries);
+    usleep(HID_OPEN_SLEEP_MICROSECONDS);
+  }
+
+  if (!device) {
+    printf("Unable to open device after %d retries\n", MAX_HID_OPEN_RETRIES);
+    hid_close(device);
+    return NULL;
   }
 
   return device;
 }
 
-void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file) {
+void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file, const char *error_emoji) {
   int res = 0;
   int num_read_retries = 0;
+  const char *message;
 
-  while (res == 0) {
+  while (res == 0 && num_read_retries < MAX_HID_READ_RETRIES) {
     res = hid_read(device, buf, BUFFER_LENGTH);
 
     if (res == 0) {
       printf("Waiting to read()...\n");
+      usleep(HID_READ_SLEEP_MICROSECONDS);
+      num_read_retries++;
+      continue;
     }
 
     if (res < 0) {
       printf("Error: Unable to read()\n");
       printf("HID message: %ls\n", hid_error(device));
       print_buffer(buf);
-      log_message(DEVICE_READ_FAIL_MESSAGE, log_file);
+      message =
+        build_log_message(ERROR_HEADER, error_emoji, DEVICE_READ_FAIL_MESSAGE);
+      log_message(message, log_file);
       break;
     }
-
-    num_read_retries++;
-    if (num_read_retries >= MAX_HID_READ_RETRIES) {
-      printf("Unable to read device after %d retries\n", MAX_HID_READ_RETRIES);
-      printf("hid_read result was: %d\n", res);
-      print_buffer(buf);
-      log_message(DEVICE_READ_FAIL_MESSAGE, log_file);
-      break;
-    }
-    usleep(HID_READ_SLEEP_MICROSECONDS);
   }
 
-  if (res > 0) {
+  if (res == 0) {
+    printf("Unable to read device after %d retries\n", MAX_HID_READ_RETRIES);
+    printf("hid_read result was: %d\n", res);
+    print_buffer(buf);
+    message = build_log_message(ERROR_HEADER, error_emoji, DEVICE_READ_FAIL_MESSAGE);
+    log_message(message, log_file);
+  } else if (res > 0) {
     printf("HID message: %ls\n", hid_error(device));
-    log_out_read_message(buf[1], log_file);
+    log_out_read_message(buf[1], log_file, error_emoji);
   }
 }
 
-void log_out_read_message(int message, FILE *log_file) {
-  switch (message) {
+void log_out_read_message(int read_message, FILE *log_file, const char *error_emoji) {
+  const char *read_message_log_message;
+  const char *emoji;
+  const char *header;
+  const char *message;
+
+  switch (read_message) {
     case GAMING_MODE:
-      log_message(GAMING_MODE_MESSAGE, log_file);
+      header = GAMING_HEADER;
+      emoji = get_random_emoji_string(GAMING_MODE_EMOJIS, NUM_GAMING_MODE_EMOJIS);
+      message = GAMING_MODE_MESSAGE;
       break;
     case STENO_MODE:
-      log_message(STENO_MODE_MESSAGE, log_file);
+      header = STENO_HEADER;
+      emoji = get_random_emoji_string(STENO_MODE_EMOJIS, NUM_STENO_MODE_EMOJIS);
+      message = STENO_MODE_MESSAGE;
       break;
     case NO_ACTION_TAKEN:
-      log_message(MODE_UNCHANGED_MESSAGE, log_file);
+      header = ERROR_HEADER;
+      emoji = error_emoji;
+      message = MODE_UNCHANGED_MESSAGE;
       break;
     default:
-      printf("Message read from device: %d\n", message);
-      log_message(HID_READ_BAD_VALUE_MESSAGE, log_file);
+      printf("Message read from device: %d\n", read_message);
+      header = ERROR_HEADER;
+      emoji = error_emoji;
+      message = HID_READ_BAD_VALUE_MESSAGE;
   }
+
+  read_message_log_message = build_log_message(header, emoji, message);
+  log_message(read_message_log_message, log_file);
+}
+
+char* build_log_message(const char *header, const char *emoji, const char *message) {
+  static char log_msg[MAX_MESSAGE_LENGTH];
+  snprintf(
+    log_msg,
+    MAX_MESSAGE_LENGTH,
+    "%s%s%s%s%s",
+    header,
+    SEPARATOR,
+    emoji,
+    SEPARATOR,
+    message
+  );
+  return log_msg;
 }
 
 void log_message(const char *message, FILE *log_file) {
@@ -188,4 +226,9 @@ void clean_up(char *log_filepath, FILE *log_file) {
 void print_buffer(unsigned char* buf) {
   for (int i = 0; i < BUFFER_LENGTH; i++)
     printf("%02x ", (unsigned int) buf[i]);
+}
+
+const char* get_random_emoji_string(const char * const collection[], int num_elements) {
+  int random_index = rand() % num_elements;
+  return collection[random_index];
 }

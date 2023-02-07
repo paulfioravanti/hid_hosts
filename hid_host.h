@@ -14,6 +14,7 @@ enum {
   HID_READ_SLEEP_MICROSECONDS = 100000, // 100 ms
   MAX_HID_OPEN_RETRIES = 30,
   MAX_HID_READ_RETRIES = 4,
+  MAX_MESSAGE_LENGTH = 105,
   NO_ACTION_TAKEN = 9,
   STENO_MODE = 4
 };
@@ -21,28 +22,74 @@ enum {
 // REF: https://github.com/rabbitgrowth/plover-tapey-tape
 static const char LOG_FILENAME[] =
   "/Library/Application Support/plover/tapey_tape.txt";
+static const char SEPARATOR[] = "|";
+static const char ERROR_HEADER[] = "ERROR ";
+static const char GAMING_HEADER[] = "GAMING";
+static const char STENO_HEADER[] = "STENO ";
+// REF: http://kaomoji.ru/en/
+static const char * const ERROR_EMOJIS[] = {
+  "💢     ლ(ಠ_ಠ ლ)      💢",
+  "💢  ( ╯°□°)╯ ┻━━┻    💢",
+  "💢     (＃`Д´)       💢",
+  "💢  (╯°益°)╯彡┻━┻    💢",
+  "💢     (￣ω￣;)      💢",
+  "💢     ლ(¯ロ¯ლ)      💢",
+  "💢     (￢_￢)       💢",
+  "💢.｡･ﾟﾟ･(＞_＜)･ﾟﾟ･｡.💢",
+  "💢     Σ(▼□▼メ)      💢",
+  "💢    ٩(╬ʘ益ʘ╬)۶     💢",
+  "💢   ୧((#Φ益Φ#))୨    💢",
+  "💢    ლ(¯ロ¯\"ლ)      💢",
+};
+static const int NUM_ERROR_EMOJIS =
+  sizeof(ERROR_EMOJIS) / sizeof(ERROR_EMOJIS[0]);
+static const char * const GAMING_MODE_EMOJIS[] = {
+  "🎮(❁´ω`❁)　✧٩(ˊωˋ*)و✧🎮",
+  "🎮 ヽ( ⌒o⌒)人(⌒-⌒ )ﾉ 🎮",
+  "🎮ヽ( ⌒ω⌒)人(=^‥^= )ﾉ🎮",
+  "🎮ヽ(≧◡≦)八(o^ ^o)ノ 🎮",
+  "🎮(*・∀・)爻(・∀・*) 🎮",
+  "🎮 (っ˘▽˘)(˘▽˘)˘▽˘ς) 🎮",
+  "🎮((*°▽°*)八(*°▽°*)) 🎮",
+  "🎮(*＾ω＾)人(＾ω＾*) 🎮",
+  "🎮 ٩(๑･ิᴗ･ิ)۶٩(･ิᴗ･ิ๑)۶  🎮",
+};
+static const int NUM_GAMING_MODE_EMOJIS =
+  sizeof(GAMING_MODE_EMOJIS) / sizeof(GAMING_MODE_EMOJIS[0]);
+static const char * const STENO_MODE_EMOJIS[] = {
+  "⌨️ ｷﾀ━━━━━(ﾟ∀ﾟ)━━━━━!!⌨️ ",
+  "⌨️ ☆*:.｡.o(≧▽≦)o.｡.:*☆⌨️ ",
+  "⌨️ (￣(￣(￣▽￣)￣)￣)⌨️ ",
+  "⌨️  (☞°ヮ°)☞ ☜(°ヮ°☜) ⌨️ ",
+  "⌨️ ﾉ≧∀≦)ﾉ ‥…━━━━━━━━━★⌨️ ",
+  "⌨️ (ﾉ>ω<)ﾉ’★,｡･:*:･ﾟ’☆⌨️ ",
+  "⌨️ (ノ°∀°)ノ⌒.｡.:*゜*☆⌨️ ",
+  "⌨️ ╰( ͡° ͜ʖ ͡° )つ─☆*:・ﾟ⌨️ ",
+};
+static const int NUM_STENO_MODE_EMOJIS =
+  sizeof(STENO_MODE_EMOJIS) / sizeof(STENO_MODE_EMOJIS[0]);
 static const char HID_INIT_FAIL_MESSAGE[] =
-  "ERROR |       ლ(ಠ_ಠ ლ)        | Unable to initialize HID API library\n";
+  " Unable to initialize HID API library\n";
 static const char DEVICE_OPEN_FAIL_MESSAGE[] =
-  "ERROR |   💢( ╯°□°)╯ ┻━━┻     | Failed to open HID device\n";
+  " Failed to open HID device\n";
 static const char DEVICE_WRITE_FAIL_MESSAGE[] =
-  "ERROR |        (＃`Д´)        | Unable to write to HID device\n";
+  " Unable to write to HID device\n";
 static const char DEVICE_READ_FAIL_MESSAGE[] =
-  "ERROR |   💢(╯°益°)╯彡┻━┻     | Unable to read from HID device\n";
+  " Unable to read from HID device\n";
 static const char HID_READ_BAD_VALUE_MESSAGE[] =
-  "ERROR |        (￣ω￣;)       | Unexpected value received from HID device\n";
+  " Unexpected value received from HID device\n";
 static const char MODE_UNCHANGED_MESSAGE[] =
-  "ERROR |        ლ(¯ロ¯ლ)       | Attempted mode change unsuccessful\n";
-static const char GAMING_MODE_MESSAGE[] =
-  "GAMING|🎮(❁´ω`❁)　✧٩(ˊωˋ*)و✧🎮| GAMING mode activated!\n";
-static const char STENO_MODE_MESSAGE[] =
-  "STENO |⌨️ ｷﾀ━━━━━(ﾟ∀ﾟ)━━━━━!!⌨️ | STENO mode activated!\n";
+  " Attempted mode change unsuccessful\n";
+static const char GAMING_MODE_MESSAGE[] = " GAMING mode activated!\n";
+static const char STENO_MODE_MESSAGE[] = " STENO mode activated!\n";
 
 long parse_arguments(int argc, char* argv[]);
 char* generate_log_filepath();
 hid_device* open_device();
-void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file);
+void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file, const char *error_emoji);
 void log_message(const char *message, FILE *log_file);
-void log_out_read_message(int message, FILE *log_file);
+void log_out_read_message(int message, FILE *log_file, const char *error_emoji);
 void clean_up(char *log_filepath, FILE *log_file);
 void print_buffer(unsigned char* buf);
+char* build_log_message(const char *header, const char *emoji, const char *message);
+const char* get_random_emoji_string(const char * const collection[], int num_elements);
