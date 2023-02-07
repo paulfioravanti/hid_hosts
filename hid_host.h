@@ -1,5 +1,13 @@
-// hid_close, hid_device, hid_error, hid_exit, hid_init, hid_read, hid_write, open_device
-#include <hidapi.h>
+#include <errno.h>         // errno
+#include <hidapi.h>        // hid_close, hid_device, hid_error, hid_exit,
+                           // hid_init, hid_read, hid_write, open_device
+#include <hidapi_darwin.h> // hid_darwin_set_open_exclusive
+#include <limits.h>        // INT_MAX, INT_MIN
+#include <stdio.h>         // FILE, fclose, fopen, fwrite, printf, snprintf
+#include <stdlib.h>        // free, getenv, malloc, rand, srand, strtol
+#include <string.h>        // memset, strcat, strcpy, strlen
+#include <time.h>          // time
+#include <unistd.h>        // usleep
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
