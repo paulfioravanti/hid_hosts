@@ -78,17 +78,17 @@ static const char * const STENO_MODE_EMOJIS[] = {
 static const int NUM_STENO_MODE_EMOJIS =
   sizeof(STENO_MODE_EMOJIS) / sizeof(STENO_MODE_EMOJIS[0]);
 static const char HID_INIT_FAIL_MESSAGE[] =
-  " Unable to initialize HID API library\n";
+  " Unable to initialize HID library!\n";
 static const char DEVICE_OPEN_FAIL_MESSAGE[] =
-  " Failed to open HID device\n";
+  " Couldn't OPEN device!\n";
 static const char DEVICE_WRITE_FAIL_MESSAGE[] =
-  " Unable to write to HID device\n";
+  " Couldn't WRITE to device!\n";
 static const char DEVICE_READ_FAIL_MESSAGE[] =
-  " Unable to read from HID device\n";
+  " Couldn't READ from device!\n";
 static const char HID_READ_BAD_VALUE_MESSAGE[] =
-  " Unexpected value received from HID device\n";
+  " Unexpected response from device!\n";
 static const char MODE_UNCHANGED_MESSAGE[] =
-  " Attempted mode change unsuccessful\n";
+  " Attempted mode change unsuccessful!\n";
 static const char GAMING_MODE_MESSAGE[] = " GAMING mode activated!\n";
 static const char STENO_MODE_MESSAGE[] = " STENO mode activated!\n";
 
