@@ -1,7 +1,7 @@
 #include "hid_host.h"
 
 int main(int argc, char* argv[]) {
-  long arg = parse_arguments(argc, argv);
+  int arg = parse_arguments(argc, argv);
   if (arg == -1) {
     return -1;
   }
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-long parse_arguments(int argc, char* argv[]) {
+int parse_arguments(int argc, char* argv[]) {
   // Requires only one argument
   // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
   if (argc != 2 || strlen(argv[1]) == 0) {
@@ -72,10 +72,10 @@ long parse_arguments(int argc, char* argv[]) {
     return -1;
   }
 
-  char* end_ptr;
+  char *end_ptr;
   errno = 0;
   // REF: https://devdocs.io/c/string/byte/strtol
-  long arg = strtol(argv[1], &end_ptr, 10);
+  int arg = strtol(argv[1], &end_ptr, 16);
 
   // Error out if:
   // - an invalid character was found before the end of the string
@@ -106,6 +106,7 @@ hid_device* open_device() {
     device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
 
     if (device) {
+      printf("HID message: %ls\n", hid_error(device));
       break;
     }
 
@@ -158,6 +159,7 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file,
     log_message(message, log_file);
   } else if (res > 0) {
     printf("HID message: %ls\n", hid_error(device));
+    print_buffer(buf);
     log_out_read_message(buf[1], log_file, error_emoji);
   }
 }

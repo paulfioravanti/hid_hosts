@@ -17,15 +17,15 @@
 enum {
   BUFFER_LENGTH = 2,
   ENABLE_NONBLOCKING = 1,
-  GAMING_MODE = 3,
+  GAMING_MODE = 0x3,
   HID_DARWIN_NON_EXCLUSIVE_MODE = 0,
   HID_OPEN_MAX_RETRIES = 30,
   HID_OPEN_SLEEP_MICROSECONDS = 15000, // 15 ms
-  HID_READ_MAX_RETRIES = 4,
+  HID_READ_MAX_RETRIES = 5,
   HID_READ_SLEEP_MICROSECONDS = 100000, // 100 ms
   MAX_MESSAGE_LENGTH = 105,
-  NO_ACTION_TAKEN = 9,
-  STENO_MODE = 4
+  NO_ACTION_TAKEN = 0x9,
+  STENO_MODE = 0x4
 };
 
 // REF: https://github.com/rabbitgrowth/plover-tapey-tape
@@ -92,7 +92,7 @@ static const char MODE_UNCHANGED_MESSAGE[] =
 static const char GAMING_MODE_MESSAGE[] = " GAMING mode activated!\n";
 static const char STENO_MODE_MESSAGE[] = " STENO mode activated!\n";
 
-long parse_arguments(int argc, char* argv[]);
+int parse_arguments(int argc, char* argv[]);
 char* generate_log_filepath();
 hid_device* open_device();
 void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file, const char *error_emoji);
