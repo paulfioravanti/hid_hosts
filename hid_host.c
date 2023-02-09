@@ -153,6 +153,8 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file,
   if (res == 0) {
     printf("Unable to read device after %d retries\n", HID_READ_MAX_RETRIES);
     printf("hid_read result was: %d\n", res);
+    perror("hid_read");
+    fprintf(stderr, "hid_read failed: %s\n", strerror(errno));
     print_buffer(buf);
     message =
       build_log_message(ERROR_HEADER, error_emoji, DEVICE_READ_FAIL_MESSAGE);
