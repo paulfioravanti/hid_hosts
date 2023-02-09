@@ -86,7 +86,7 @@ static const char DEVICE_WRITE_FAIL_MESSAGE[] =
 static const char DEVICE_READ_FAIL_MESSAGE[] =
   " Couldn't READ from device!\n";
 static const char HID_READ_BAD_VALUE_MESSAGE[] =
-  " Unexpected response from device!\n";
+  " Unexpected response from device: ";
 static const char MODE_UNCHANGED_MESSAGE[] =
   " Attempted mode change unsuccessful!\n";
 static const char GAMING_MODE_MESSAGE[] = " GAMING mode activated!\n";

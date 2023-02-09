@@ -167,7 +167,6 @@ void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file,
 }
 
 void log_out_read_message(int read_message, FILE *log_file, const char *error_emoji) {
-  const char *read_message_log_message;
   const char *emoji;
   const char *header;
   const char *message;
@@ -193,10 +192,19 @@ void log_out_read_message(int read_message, FILE *log_file, const char *error_em
       printf("Message read from device: %d\n", read_message);
       header = ERROR_HEADER;
       emoji = error_emoji;
-      message = HID_READ_BAD_VALUE_MESSAGE;
+      char buffer[MAX_MESSAGE_LENGTH];
+      snprintf(
+        buffer,
+        sizeof(buffer),
+        "%s%d\n",
+        HID_READ_BAD_VALUE_MESSAGE,
+        read_message
+      );
+      message = buffer;
   }
 
-  read_message_log_message = build_log_message(header, emoji, message);
+  const char *read_message_log_message =
+    build_log_message(header, emoji, message);
   log_message(read_message_log_message, log_file);
 }
 
