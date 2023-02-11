@@ -58,6 +58,12 @@ gcc $(pkg-config --cflags --libs hidapi) hid_host.c -o hid_host
 
 This will generate a `hid_host` executable file.
 
+There is also an executable that will run this for you:
+
+```sh
+./build.sh
+```
+
 #### Run
 
 Currently, the script only accounts for integers to be sent through as command
