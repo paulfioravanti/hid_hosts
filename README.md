@@ -103,12 +103,27 @@ node hidHost.js 1
 node hidHost.js 2
 ```
 
+## Troubleshooting
+
+I have had issues where I was getting random errors when reading to or writing
+from the HID device (in this case, the Georgi). Going into the Keyboard
+settings for macOS and changing/resetting the "Key repeat rate" and/or the
+"Delay until repeat" settings, and _then_ restarting the computing seemed to get
+things more stable.
+
+More info at:
+
+- [Is it possible to adjust the key repeat rate?][]
+- [How to increase keyboard key repeat rate on OS X?][]
+
 [C]: https://en.wikipedia.org/wiki/C_(programming_language)
 [Georgi]: https://www.gboards.ca/product/georgi
 [HIDAPI]: https://github.com/libusb/hidapi
 [Homebrew]: https://brew.sh/
+[How to increase keyboard key repeat rate on OS X?]: https://apple.stackexchange.com/questions/10467/how-to-increase-keyboard-key-repeat-rate-on-os-x
 [Human Interface Device]: https://en.wikipedia.org/wiki/USB_human_interface_device_class
 [Installing HIDAPI]: https://github.com/libusb/hidapi#installing-hidapi
+[Is it possible to adjust the key repeat rate?]: https://karabiner-elements.pqrs.org/docs/help/how-to/key-repeat/
 [keyboard list]: https://github.com/qmk/qmk_firmware/tree/master/keyboards
 [my Georgi keymap]: https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/keymap.c
 [node-hid]: https://github.com/node-hid/node-hid
