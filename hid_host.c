@@ -1,6 +1,6 @@
 #include "hid_host.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   int arg = parse_arguments(argc, argv);
   if (arg == -1) {
     return -1;
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-int parse_arguments(int argc, char* argv[]) {
+int parse_arguments(int argc, char *argv[]) {
   // Requires only one argument
   // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
   if (argc != 2 || strlen(argv[1]) == 0) {
@@ -124,7 +124,7 @@ hid_device* open_device() {
   return device;
 }
 
-void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file, const char *error_emoji) {
+void read_device_message(hid_device *device, unsigned char *buf, FILE *log_file, const char *error_emoji) {
   int res = 0;
   int num_read_retries = 0;
   const char *message;
@@ -233,12 +233,12 @@ void clean_up(char *log_filepath, FILE *log_file) {
   hid_exit();
 }
 
-void print_buffer(unsigned char* buf) {
+void print_buffer(unsigned char *buf) {
   for (int i = 0; i < BUFFER_LENGTH; i++)
     printf("%02x ", (unsigned int) buf[i]);
 }
 
-const char* get_random_emoji_string(const char * const collection[], int num_elements) {
+const char* get_random_emoji_string(const char* const collection[], int num_elements) {
   int random_index = rand() % num_elements;
   return collection[random_index];
 }

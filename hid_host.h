@@ -92,13 +92,13 @@ static const char MODE_UNCHANGED_MESSAGE[] =
 static const char GAMING_MODE_MESSAGE[] = " GAMING mode activated!\n";
 static const char STENO_MODE_MESSAGE[] = " STENO mode activated!\n";
 
-int parse_arguments(int argc, char* argv[]);
+int parse_arguments(int argc, char *argv[]);
 char* generate_log_filepath();
 hid_device* open_device();
-void read_device_message(hid_device *device, unsigned char* buf, FILE *log_file, const char *error_emoji);
+void read_device_message(hid_device *device, unsigned char *buf, FILE *log_file, const char *error_emoji);
 void log_message(const char *message, FILE *log_file);
 void log_out_read_message(int message, FILE *log_file, const char *error_emoji);
 void clean_up(char *log_filepath, FILE *log_file);
-void print_buffer(unsigned char* buf);
+void print_buffer(unsigned char *buf);
 char* build_log_message(const char *header, const char *emoji, const char *message);
-const char* get_random_emoji_string(const char * const collection[], int num_elements);
+const char* get_random_emoji_string(const char* const collection[], int num_elements);
