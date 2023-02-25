@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
   // REF: https://github.com/libusb/hidapi/blob/master/mac/hidapi_darwin.h#L68
   hid_darwin_set_open_exclusive(HID_DARWIN_NON_EXCLUSIVE_MODE);
 
-  hid_device *device = open_device();
+  hid_device *device = get_or_open_device();
   if (!device) {
     message =
       build_log_message(ERROR_HEADER, error_emoji, DEVICE_OPEN_FAIL_MESSAGE);
@@ -95,6 +95,41 @@ char* generate_log_filepath() {
   strcpy(log_filepath, home_dir);
   strcat(log_filepath, LOG_FILENAME);
   return log_filepath;
+}
+
+hid_device* get_or_open_device() {
+  struct hid_device_info *devices, *current_device;
+  hid_device *device = NULL;
+
+  devices = hid_enumerate(0, 0);
+  current_device = devices;
+
+  while (current_device) {
+    if (is_target_device(current_device)) {
+      printf("Device is already open\n");
+      device = hid_open_path(current_device->path);
+
+      if (device) {
+        printf("Successfully opened device path!\n");
+        hid_free_enumeration(devices);
+        return device;
+      }
+
+      printf("Failed to open device path!\n");
+      printf("HID message: %ls\n", hid_error(device));
+    }
+
+    current_device = current_device->next;
+  }
+
+  hid_free_enumeration(devices);
+  printf("Device path not openable or device not currently open\n");
+
+  return open_device();
+}
+
+int is_target_device(struct hid_device_info *device) {
+  return device->vendor_id == VENDOR_ID && device->product_id == PRODUCT_ID;
 }
 
 hid_device* open_device() {

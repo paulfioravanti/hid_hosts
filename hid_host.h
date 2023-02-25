@@ -94,6 +94,8 @@ static const char STENO_MODE_MESSAGE[] = " STENO mode activated!\n";
 
 int parse_arguments(int argc, char *argv[]);
 char* generate_log_filepath();
+hid_device* get_or_open_device();
+int is_target_device(struct hid_device_info *device);
 hid_device* open_device();
 void read_device_message(hid_device *device, unsigned char *buf, FILE *log_file, const char *error_emoji);
 void log_message(const char *message, FILE *log_file);
