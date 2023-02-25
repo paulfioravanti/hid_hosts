@@ -14,17 +14,12 @@ int main(int argc, char *argv[]) {
   }
 
   srand(time(NULL));
-  const char *error_emoji =
-    get_random_emoji_string(ERROR_EMOJIS, NUM_ERROR_EMOJIS);
-  const char *message;
 
   // Initialize the hidapi library
   int res = hid_init();
   if (res < 0) {
     printf("Unable to initialize HIDAPI library\n");
-    message =
-      build_log_message(ERROR_HEADER, error_emoji, HID_INIT_FAIL_MESSAGE);
-    log_message(message, log_file);
+    log_error(log_file, HID_INIT_FAIL_MESSAGE);
     clean_up(log_file);
     return -1;
   }
@@ -34,9 +29,7 @@ int main(int argc, char *argv[]) {
 
   hid_device *device = get_or_open_device();
   if (!device) {
-    message =
-      build_log_message(ERROR_HEADER, error_emoji, DEVICE_OPEN_FAIL_MESSAGE);
-    log_message(message, log_file);
+    log_error(log_file, DEVICE_OPEN_FAIL_MESSAGE);
     clean_up(log_file);
     return -1;
   }
@@ -50,12 +43,10 @@ int main(int argc, char *argv[]) {
   if (res < 0) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
-    message =
-      build_log_message(ERROR_HEADER, error_emoji, DEVICE_WRITE_FAIL_MESSAGE);
-    log_message(message, log_file);
+    log_error(log_file, DEVICE_WRITE_FAIL_MESSAGE);
   } else {
     hid_set_nonblocking(device, ENABLE_NONBLOCKING);
-    read_device_message(device, buf, log_file, error_emoji);
+    read_device_message(device, buf, log_file);
   }
 
   hid_close(device);
@@ -150,7 +141,7 @@ hid_device* open_device() {
   return device;
 }
 
-void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file, const char *error_emoji) {
+void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file) {
   int res = 0;
   int num_read_retries = 0;
   const char *message;
@@ -169,9 +160,7 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file,
       printf("Error: Unable to read()\n");
       printf("HID message: %ls\n", hid_error(device));
       print_buffer(buf);
-      message =
-        build_log_message(ERROR_HEADER, error_emoji, DEVICE_READ_FAIL_MESSAGE);
-      log_message(message, log_file);
+      log_error(log_file, DEVICE_READ_FAIL_MESSAGE);
       break;
     }
   }
@@ -182,20 +171,19 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file,
     perror("hid_read");
     fprintf(stderr, "hid_read failed: %s\n", strerror(errno));
     print_buffer(buf);
-    message =
-      build_log_message(ERROR_HEADER, error_emoji, DEVICE_READ_FAIL_MESSAGE);
-    log_message(message, log_file);
+    log_error(log_file, DEVICE_READ_FAIL_MESSAGE);
   } else if (res > 0) {
     printf("HID message: %ls\n", hid_error(device));
     print_buffer(buf);
-    log_out_read_message(buf[1], log_file, error_emoji);
+    log_out_read_message(buf[1], log_file);
   }
 }
 
-void log_out_read_message(int read_message, Tape *log_file, const char *error_emoji) {
+void log_out_read_message(int read_message, Tape *log_file) {
   const char *emoji;
   const char *header;
   const char *message;
+  const char *read_message_log_message;
 
   switch (read_message) {
     case GAMING_MODE:
@@ -203,21 +191,23 @@ void log_out_read_message(int read_message, Tape *log_file, const char *error_em
       emoji =
         get_random_emoji_string(GAMING_MODE_EMOJIS, NUM_GAMING_MODE_EMOJIS);
       message = GAMING_MODE_MESSAGE;
+      read_message_log_message =
+        build_log_message(header, emoji, message);
+      log_message(read_message_log_message, log_file);
       break;
     case STENO_MODE:
       header = STENO_HEADER;
       emoji = get_random_emoji_string(STENO_MODE_EMOJIS, NUM_STENO_MODE_EMOJIS);
       message = STENO_MODE_MESSAGE;
+      read_message_log_message =
+        build_log_message(header, emoji, message);
+      log_message(read_message_log_message, log_file);
       break;
     case NO_ACTION_TAKEN:
-      header = ERROR_HEADER;
-      emoji = error_emoji;
-      message = MODE_UNCHANGED_MESSAGE;
+      log_error(log_file, MODE_UNCHANGED_MESSAGE);
       break;
     default:
       printf("Message read from device: %d\n", read_message);
-      header = ERROR_HEADER;
-      emoji = error_emoji;
       char buffer[MAX_MESSAGE_LENGTH];
       snprintf(
         buffer,
@@ -227,11 +217,8 @@ void log_out_read_message(int read_message, Tape *log_file, const char *error_em
         read_message
       );
       message = buffer;
+      log_error(log_file, message);
   }
-
-  const char *read_message_log_message =
-    build_log_message(header, emoji, message);
-  log_message(read_message_log_message, log_file);
 }
 
 char* build_log_message(const char *header, const char *emoji, const char *message) {

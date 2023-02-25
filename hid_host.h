@@ -24,7 +24,6 @@ enum {
   HID_OPEN_SLEEP_MICROSECONDS = 15000, // 15 ms
   HID_READ_MAX_RETRIES = 3,
   HID_READ_SLEEP_MICROSECONDS = 500000, // 500 ms
-  MAX_MESSAGE_LENGTH = 105,
   NO_ACTION_TAKEN = 0x9,
   STENO_MODE = 0x4
 };
@@ -32,27 +31,8 @@ enum {
 // REF: https://github.com/rabbitgrowth/plover-tapey-tape
 static const char LOG_FILENAME[] =
   "/Library/Application Support/plover/tapey_tape.txt";
-static const char SEPARATOR[] = "|";
-static const char ERROR_HEADER[] = "ERROR ";
 static const char GAMING_HEADER[] = "GAMING";
 static const char STENO_HEADER[] = "STENO ";
-// REF: http://kaomoji.ru/en/
-static const char * const ERROR_EMOJIS[] = {
-  "💢     ლ(ಠ_ಠ ლ)      💢",
-  "💢  ( ╯°□°)╯ ┻━━┻    💢",
-  "💢     (＃`Д´)       💢",
-  "💢  (╯°益°)╯彡┻━┻    💢",
-  "💢     (￣ω￣;)      💢",
-  "💢     ლ(¯ロ¯ლ)      💢",
-  "💢     (￢_￢)       💢",
-  "💢.｡･ﾟﾟ･(＞_＜)･ﾟﾟ･｡.💢",
-  "💢     Σ(▼□▼メ)      💢",
-  "💢    ٩(╬ʘ益ʘ╬)۶     💢",
-  "💢   ୧((#Φ益Φ#))୨    💢",
-  "💢    ლ(¯ロ¯\"ლ)      💢",
-};
-static const int NUM_ERROR_EMOJIS =
-  sizeof(ERROR_EMOJIS) / sizeof(ERROR_EMOJIS[0]);
 static const char * const GAMING_MODE_EMOJIS[] = {
   "🎮(❁´ω`❁)　✧٩(ˊωˋ*)و✧🎮",
   "🎮 ヽ( ⌒o⌒)人(⌒-⌒ )ﾉ 🎮",
@@ -97,8 +77,8 @@ int parse_arguments(int argc, char *argv[]);
 hid_device* get_or_open_device();
 int is_target_device(struct hid_device_info *device);
 hid_device* open_device();
-void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file, const char *error_emoji);
-void log_out_read_message(int message, Tape *log_file, const char *error_emoji);
+void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file);
+void log_out_read_message(int message, Tape *log_file);
 void clean_up(Tape *log_file);
 void print_buffer(unsigned char *buf);
 char* build_log_message(const char *header, const char *emoji, const char *message);
