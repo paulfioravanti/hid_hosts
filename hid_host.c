@@ -6,11 +6,10 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  char *log_filepath = generate_log_filepath();
-  FILE *log_file = fopen(log_filepath, "a");
+  Tape *log_file = init_tape();
   if (!log_file) {
     printf("ERROR: Unable to open log file\n");
-    free(log_filepath);
+    cleanup_tape(log_file);
     return -1;
   }
 
@@ -26,7 +25,7 @@ int main(int argc, char *argv[]) {
     message =
       build_log_message(ERROR_HEADER, error_emoji, HID_INIT_FAIL_MESSAGE);
     log_message(message, log_file);
-    clean_up(log_filepath, log_file);
+    clean_up(log_file);
     return -1;
   }
   // REF: https://github.com/libusb/hidapi/blob/master/hidtest/test.c#L102
@@ -38,7 +37,7 @@ int main(int argc, char *argv[]) {
     message =
       build_log_message(ERROR_HEADER, error_emoji, DEVICE_OPEN_FAIL_MESSAGE);
     log_message(message, log_file);
-    clean_up(log_filepath, log_file);
+    clean_up(log_file);
     return -1;
   }
 
@@ -60,7 +59,7 @@ int main(int argc, char *argv[]) {
   }
 
   hid_close(device);
-  clean_up(log_filepath, log_file);
+  clean_up(log_file);
   return 0;
 }
 
@@ -87,14 +86,6 @@ int parse_arguments(int argc, char *argv[]) {
   }
 
   return arg;
-}
-
-char* generate_log_filepath() {
-  char *home_dir = getenv("HOME");
-  char *log_filepath = malloc(strlen(home_dir) + strlen(LOG_FILENAME) + 1);
-  strcpy(log_filepath, home_dir);
-  strcat(log_filepath, LOG_FILENAME);
-  return log_filepath;
 }
 
 hid_device* get_or_open_device() {
@@ -159,7 +150,7 @@ hid_device* open_device() {
   return device;
 }
 
-void read_device_message(hid_device *device, unsigned char *buf, FILE *log_file, const char *error_emoji) {
+void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file, const char *error_emoji) {
   int res = 0;
   int num_read_retries = 0;
   const char *message;
@@ -201,7 +192,7 @@ void read_device_message(hid_device *device, unsigned char *buf, FILE *log_file,
   }
 }
 
-void log_out_read_message(int read_message, FILE *log_file, const char *error_emoji) {
+void log_out_read_message(int read_message, Tape *log_file, const char *error_emoji) {
   const char *emoji;
   const char *header;
   const char *message;
@@ -258,13 +249,8 @@ char* build_log_message(const char *header, const char *emoji, const char *messa
   return log_msg;
 }
 
-void log_message(const char *message, FILE *log_file) {
-  fwrite(message, 1, strlen(message), log_file);
-}
-
-void clean_up(char *log_filepath, FILE *log_file) {
-  fclose(log_file);
-  free(log_filepath);
+void clean_up(Tape *log_file) {
+  cleanup_tape(log_file);
   hid_exit();
 }
 

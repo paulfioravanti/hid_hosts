@@ -8,6 +8,7 @@
 #include <string.h>        // memset, strcat, strcpy, strlen
 #include <time.h>          // time
 #include <unistd.h>        // usleep
+#include "steno_tape.h"
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
@@ -93,14 +94,12 @@ static const char GAMING_MODE_MESSAGE[] = " GAMING mode activated!\n";
 static const char STENO_MODE_MESSAGE[] = " STENO mode activated!\n";
 
 int parse_arguments(int argc, char *argv[]);
-char* generate_log_filepath();
 hid_device* get_or_open_device();
 int is_target_device(struct hid_device_info *device);
 hid_device* open_device();
-void read_device_message(hid_device *device, unsigned char *buf, FILE *log_file, const char *error_emoji);
-void log_message(const char *message, FILE *log_file);
-void log_out_read_message(int message, FILE *log_file, const char *error_emoji);
-void clean_up(char *log_filepath, FILE *log_file);
+void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file, const char *error_emoji);
+void log_out_read_message(int message, Tape *log_file, const char *error_emoji);
+void clean_up(Tape *log_file);
 void print_buffer(unsigned char *buf);
 char* build_log_message(const char *header, const char *emoji, const char *message);
 const char* get_random_emoji_string(const char* const collection[], int num_elements);
