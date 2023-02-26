@@ -13,8 +13,6 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  srand(time(NULL));
-
   // Initialize the hidapi library
   int res = hid_init();
   if (res < 0) {
@@ -187,7 +185,7 @@ void log_out_read_message(int message, Tape *log_file) {
     case STENO_MODE:
       steno_tape_steno_mode(log_file);
       break;
-    case NO_ACTION_TAKEN:
+    case MODE_UNCHANGED:
       steno_tape_mode_unchanged(log_file);
       break;
     default:
@@ -206,21 +204,6 @@ void log_out_read_message(int message, Tape *log_file) {
   }
 }
 
-char* build_log_message(const char *header, const char *emoji, const char *message) {
-  static char log_msg[MAX_MESSAGE_LENGTH];
-  snprintf(
-    log_msg,
-    MAX_MESSAGE_LENGTH,
-    "%s%s%s%s%s",
-    header,
-    SEPARATOR,
-    emoji,
-    SEPARATOR,
-    message
-  );
-  return log_msg;
-}
-
 void clean_up(Tape *log_file) {
   steno_tape_cleanup(log_file);
   hid_exit();
@@ -229,9 +212,4 @@ void clean_up(Tape *log_file) {
 void print_buffer(unsigned char *buf) {
   for (int i = 0; i < BUFFER_LENGTH; i++)
     printf("%02x ", (unsigned int) buf[i]);
-}
-
-const char* get_random_emoji_string(const char* const collection[], int num_elements) {
-  int random_index = rand() % num_elements;
-  return collection[random_index];
 }

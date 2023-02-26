@@ -3,12 +3,13 @@
                            // hid_init, hid_read, hid_write, open_device
 #include <hidapi_darwin.h> // hid_darwin_set_open_exclusive
 #include <limits.h>        // INT_MAX, INT_MIN
-#include <stdio.h>         // FILE, fclose, fopen, fwrite, printf, snprintf
-#include <stdlib.h>        // free, getenv, malloc, rand, srand, strtol
-#include <string.h>        // memset, strcat, strcpy, strlen
-#include <time.h>          // time
+#include <stdio.h>         // printf, snprintf
+#include <stdlib.h>        // strtol
+#include <string.h>        // memset, strlen
 #include <unistd.h>        // usleep
-#include "steno_tape.h"
+#include "steno_tape.h"    // steno_tape_cleanup, steno_tape_error,
+                           // steno_tape_gaming_mode, steno_tape_init,
+                           // steno_tape_mode_unchanged, steno_tape_steno_mode
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
@@ -24,7 +25,7 @@ enum {
   HID_OPEN_SLEEP_MICROSECONDS = 15000, // 15 ms
   HID_READ_MAX_RETRIES = 3,
   HID_READ_SLEEP_MICROSECONDS = 500000, // 500 ms
-  NO_ACTION_TAKEN = 0x9,
+  MODE_UNCHANGED = 0x9,
   STENO_MODE = 0x4
 };
 
@@ -47,5 +48,3 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file)
 void log_out_read_message(int message, Tape *log_file);
 void clean_up(Tape *log_file);
 void print_buffer(unsigned char *buf);
-char* build_log_message(const char *header, const char *emoji, const char *message);
-const char* get_random_emoji_string(const char* const collection[], int num_elements);
