@@ -6,10 +6,10 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  Tape *log_file = steno_tape_init();
-  if (!log_file) {
+  Tape *tape = steno_tape_init();
+  if (!tape) {
     printf("ERROR: Unable to open log file\n");
-    steno_tape_cleanup(log_file);
+    steno_tape_cleanup(tape);
     return -1;
   }
 
@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
   int res = hid_init();
   if (res < 0) {
     printf("Unable to initialize HIDAPI library\n");
-    steno_tape_error(log_file, HID_INIT_FAIL_MESSAGE);
-    clean_up(log_file);
+    steno_tape_error(tape, HID_INIT_FAIL_MESSAGE);
+    clean_up(tape);
     return -1;
   }
   // REF: https://github.com/libusb/hidapi/blob/master/hidtest/test.c#L102
@@ -27,8 +27,8 @@ int main(int argc, char *argv[]) {
 
   hid_device *device = get_or_open_device();
   if (!device) {
-    steno_tape_error(log_file, DEVICE_OPEN_FAIL_MESSAGE);
-    clean_up(log_file);
+    steno_tape_error(tape, DEVICE_OPEN_FAIL_MESSAGE);
+    clean_up(tape);
     return -1;
   }
 
@@ -41,14 +41,14 @@ int main(int argc, char *argv[]) {
   if (res < 0) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
-    steno_tape_error(log_file, DEVICE_WRITE_FAIL_MESSAGE);
+    steno_tape_error(tape, DEVICE_WRITE_FAIL_MESSAGE);
   } else {
     hid_set_nonblocking(device, ENABLE_NONBLOCKING);
-    read_device_message(device, buf, log_file);
+    read_device_message(device, buf, tape);
   }
 
   hid_close(device);
-  clean_up(log_file);
+  clean_up(tape);
   return 0;
 }
 
@@ -77,7 +77,7 @@ int parse_arguments(int argc, char *argv[]) {
   return arg;
 }
 
-hid_device* get_or_open_device() {
+hid_device* get_or_open_device(void) {
   struct hid_device_info *devices, *current_device;
   hid_device *device = NULL;
 
@@ -112,7 +112,7 @@ int is_target_device(struct hid_device_info *device) {
   return device->vendor_id == VENDOR_ID && device->product_id == PRODUCT_ID;
 }
 
-hid_device* open_device() {
+hid_device* open_device(void) {
   int num_open_retries = 0;
   hid_device *device = NULL;
 
@@ -139,7 +139,7 @@ hid_device* open_device() {
   return device;
 }
 
-void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file) {
+void read_device_message(hid_device *device, unsigned char *buf, Tape *tape) {
   int res = 0;
   int num_read_retries = 0;
   const char *message;
@@ -158,7 +158,7 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file)
       printf("Error: Unable to read()\n");
       printf("HID message: %ls\n", hid_error(device));
       print_buffer(buf);
-      steno_tape_error(log_file, DEVICE_READ_FAIL_MESSAGE);
+      steno_tape_error(tape, DEVICE_READ_FAIL_MESSAGE);
       break;
     }
   }
@@ -169,24 +169,24 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file)
     perror("hid_read");
     fprintf(stderr, "hid_read failed: %s\n", strerror(errno));
     print_buffer(buf);
-    steno_tape_error(log_file, DEVICE_READ_FAIL_MESSAGE);
+    steno_tape_error(tape, DEVICE_READ_FAIL_MESSAGE);
   } else if (res > 0) {
     printf("HID message: %ls\n", hid_error(device));
     print_buffer(buf);
-    log_out_read_message(buf[1], log_file);
+    log_out_read_message(buf[1], tape);
   }
 }
 
-void log_out_read_message(int message, Tape *log_file) {
+void log_out_read_message(int message, Tape *tape) {
   switch (message) {
     case GAMING_MODE:
-      steno_tape_gaming_mode(log_file);
+      steno_tape_gaming_mode(tape);
       break;
     case STENO_MODE:
-      steno_tape_steno_mode(log_file);
+      steno_tape_steno_mode(tape);
       break;
     case MODE_UNCHANGED:
-      steno_tape_mode_unchanged(log_file);
+      steno_tape_mode_unchanged(tape);
       break;
     default:
       printf("Message read from device: %d\n", message);
@@ -200,12 +200,12 @@ void log_out_read_message(int message, Tape *log_file) {
         message
       );
       error_message = buffer;
-      steno_tape_error(log_file, error_message);
+      steno_tape_error(tape, error_message);
   }
 }
 
-void clean_up(Tape *log_file) {
-  steno_tape_cleanup(log_file);
+void clean_up(Tape *tape) {
+  steno_tape_cleanup(tape);
   hid_exit();
 }
 

@@ -41,10 +41,10 @@ static const char HID_READ_BAD_VALUE_MESSAGE[] =
   " Unexpected response from device: ";
 
 int parse_arguments(int argc, char *argv[]);
-hid_device* get_or_open_device();
+hid_device* get_or_open_device(void);
 int is_target_device(struct hid_device_info *device);
-hid_device* open_device();
-void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file);
-void log_out_read_message(int message, Tape *log_file);
-void clean_up(Tape *log_file);
+hid_device* open_device(void);
+void read_device_message(hid_device *device, unsigned char *buf, Tape *tape);
+void log_out_read_message(int message, Tape *tape);
+void clean_up(Tape *tape);
 void print_buffer(unsigned char *buf);
