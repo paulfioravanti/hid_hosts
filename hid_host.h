@@ -28,19 +28,6 @@ enum {
   STENO_MODE = 0x4
 };
 
-static const char STENO_HEADER[] = "STENO ";
-static const char * const STENO_MODE_EMOJIS[] = {
-  "⌨️ ｷﾀ━━━━━(ﾟ∀ﾟ)━━━━━!!⌨️ ",
-  "⌨️ ☆*:.｡.o(≧▽≦)o.｡.:*☆⌨️ ",
-  "⌨️ (￣(￣(￣▽￣)￣)￣)⌨️ ",
-  "⌨️  (☞°ヮ°)☞ ☜(°ヮ°☜) ⌨️ ",
-  "⌨️ ﾉ≧∀≦)ﾉ ‥…━━━━━━━━━★⌨️ ",
-  "⌨️ (ﾉ>ω<)ﾉ’★,｡･:*:･ﾟ’☆⌨️ ",
-  "⌨️ (ノ°∀°)ノ⌒.｡.:*゜*☆⌨️ ",
-  "⌨️ ╰( ͡° ͜ʖ ͡° )つ─☆*:・ﾟ⌨️ ",
-};
-static const int NUM_STENO_MODE_EMOJIS =
-  sizeof(STENO_MODE_EMOJIS) / sizeof(STENO_MODE_EMOJIS[0]);
 static const char HID_INIT_FAIL_MESSAGE[] =
   " Unable to initialize HID library!\n";
 static const char DEVICE_OPEN_FAIL_MESSAGE[] =
@@ -51,9 +38,6 @@ static const char DEVICE_READ_FAIL_MESSAGE[] =
   " Couldn't READ from device!\n";
 static const char HID_READ_BAD_VALUE_MESSAGE[] =
   " Unexpected response from device: ";
-static const char MODE_UNCHANGED_MESSAGE[] =
-  " Attempted mode change unsuccessful!\n";
-static const char STENO_MODE_MESSAGE[] = " STENO mode activated!\n";
 
 int parse_arguments(int argc, char *argv[]);
 hid_device* get_or_open_device();

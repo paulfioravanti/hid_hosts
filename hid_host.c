@@ -179,39 +179,30 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file)
   }
 }
 
-void log_out_read_message(int read_message, Tape *log_file) {
-  const char *emoji;
-  const char *header;
-  const char *message;
-  const char *read_message_log_message;
-
-  switch (read_message) {
+void log_out_read_message(int message, Tape *log_file) {
+  switch (message) {
     case GAMING_MODE:
       steno_tape_gaming_mode(log_file);
       break;
     case STENO_MODE:
-      header = STENO_HEADER;
-      emoji = get_random_emoji_string(STENO_MODE_EMOJIS, NUM_STENO_MODE_EMOJIS);
-      message = STENO_MODE_MESSAGE;
-      read_message_log_message =
-        build_log_message(header, emoji, message);
-      log_message(log_file, read_message_log_message);
+      steno_tape_steno_mode(log_file);
       break;
     case NO_ACTION_TAKEN:
-      steno_tape_error(log_file, MODE_UNCHANGED_MESSAGE);
+      steno_tape_mode_unchanged(log_file);
       break;
     default:
-      printf("Message read from device: %d\n", read_message);
+      printf("Message read from device: %d\n", message);
+      const char *error_message;
       char buffer[MAX_MESSAGE_LENGTH];
       snprintf(
         buffer,
         sizeof(buffer),
         "%s%d\n",
         HID_READ_BAD_VALUE_MESSAGE,
-        read_message
+        message
       );
-      message = buffer;
-      steno_tape_error(log_file, message);
+      error_message = buffer;
+      steno_tape_error(log_file, error_message);
   }
 }
 
