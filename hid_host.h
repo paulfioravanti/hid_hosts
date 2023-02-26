@@ -28,24 +28,7 @@ enum {
   STENO_MODE = 0x4
 };
 
-// REF: https://github.com/rabbitgrowth/plover-tapey-tape
-static const char LOG_FILENAME[] =
-  "/Library/Application Support/plover/tapey_tape.txt";
-static const char GAMING_HEADER[] = "GAMING";
 static const char STENO_HEADER[] = "STENO ";
-static const char * const GAMING_MODE_EMOJIS[] = {
-  "🎮(❁´ω`❁)　✧٩(ˊωˋ*)و✧🎮",
-  "🎮 ヽ( ⌒o⌒)人(⌒-⌒ )ﾉ 🎮",
-  "🎮ヽ( ⌒ω⌒)人(=^‥^= )ﾉ🎮",
-  "🎮ヽ(≧◡≦)八(o^ ^o)ノ 🎮",
-  "🎮(*・∀・)爻(・∀・*) 🎮",
-  "🎮 (っ˘▽˘)(˘▽˘)˘▽˘ς) 🎮",
-  "🎮((*°▽°*)八(*°▽°*)) 🎮",
-  "🎮(*＾ω＾)人(＾ω＾*) 🎮",
-  "🎮 ٩(๑･ิᴗ･ิ)۶٩(･ิᴗ･ิ๑)۶  🎮",
-};
-static const int NUM_GAMING_MODE_EMOJIS =
-  sizeof(GAMING_MODE_EMOJIS) / sizeof(GAMING_MODE_EMOJIS[0]);
 static const char * const STENO_MODE_EMOJIS[] = {
   "⌨️ ｷﾀ━━━━━(ﾟ∀ﾟ)━━━━━!!⌨️ ",
   "⌨️ ☆*:.｡.o(≧▽≦)o.｡.:*☆⌨️ ",
@@ -70,7 +53,6 @@ static const char HID_READ_BAD_VALUE_MESSAGE[] =
   " Unexpected response from device: ";
 static const char MODE_UNCHANGED_MESSAGE[] =
   " Attempted mode change unsuccessful!\n";
-static const char GAMING_MODE_MESSAGE[] = " GAMING mode activated!\n";
 static const char STENO_MODE_MESSAGE[] = " STENO mode activated!\n";
 
 int parse_arguments(int argc, char *argv[]);

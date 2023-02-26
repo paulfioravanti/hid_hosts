@@ -6,10 +6,10 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  Tape *log_file = init_tape();
+  Tape *log_file = steno_tape_init();
   if (!log_file) {
     printf("ERROR: Unable to open log file\n");
-    cleanup_tape(log_file);
+    steno_tape_cleanup(log_file);
     return -1;
   }
 
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
   int res = hid_init();
   if (res < 0) {
     printf("Unable to initialize HIDAPI library\n");
-    log_error(log_file, HID_INIT_FAIL_MESSAGE);
+    steno_tape_error(log_file, HID_INIT_FAIL_MESSAGE);
     clean_up(log_file);
     return -1;
   }
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
   hid_device *device = get_or_open_device();
   if (!device) {
-    log_error(log_file, DEVICE_OPEN_FAIL_MESSAGE);
+    steno_tape_error(log_file, DEVICE_OPEN_FAIL_MESSAGE);
     clean_up(log_file);
     return -1;
   }
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   if (res < 0) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(device));
-    log_error(log_file, DEVICE_WRITE_FAIL_MESSAGE);
+    steno_tape_error(log_file, DEVICE_WRITE_FAIL_MESSAGE);
   } else {
     hid_set_nonblocking(device, ENABLE_NONBLOCKING);
     read_device_message(device, buf, log_file);
@@ -160,7 +160,7 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file)
       printf("Error: Unable to read()\n");
       printf("HID message: %ls\n", hid_error(device));
       print_buffer(buf);
-      log_error(log_file, DEVICE_READ_FAIL_MESSAGE);
+      steno_tape_error(log_file, DEVICE_READ_FAIL_MESSAGE);
       break;
     }
   }
@@ -171,7 +171,7 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *log_file)
     perror("hid_read");
     fprintf(stderr, "hid_read failed: %s\n", strerror(errno));
     print_buffer(buf);
-    log_error(log_file, DEVICE_READ_FAIL_MESSAGE);
+    steno_tape_error(log_file, DEVICE_READ_FAIL_MESSAGE);
   } else if (res > 0) {
     printf("HID message: %ls\n", hid_error(device));
     print_buffer(buf);
@@ -187,13 +187,7 @@ void log_out_read_message(int read_message, Tape *log_file) {
 
   switch (read_message) {
     case GAMING_MODE:
-      header = GAMING_HEADER;
-      emoji =
-        get_random_emoji_string(GAMING_MODE_EMOJIS, NUM_GAMING_MODE_EMOJIS);
-      message = GAMING_MODE_MESSAGE;
-      read_message_log_message =
-        build_log_message(header, emoji, message);
-      log_message(read_message_log_message, log_file);
+      steno_tape_gaming_mode(log_file);
       break;
     case STENO_MODE:
       header = STENO_HEADER;
@@ -201,10 +195,10 @@ void log_out_read_message(int read_message, Tape *log_file) {
       message = STENO_MODE_MESSAGE;
       read_message_log_message =
         build_log_message(header, emoji, message);
-      log_message(read_message_log_message, log_file);
+      log_message(log_file, read_message_log_message);
       break;
     case NO_ACTION_TAKEN:
-      log_error(log_file, MODE_UNCHANGED_MESSAGE);
+      steno_tape_error(log_file, MODE_UNCHANGED_MESSAGE);
       break;
     default:
       printf("Message read from device: %d\n", read_message);
@@ -217,7 +211,7 @@ void log_out_read_message(int read_message, Tape *log_file) {
         read_message
       );
       message = buffer;
-      log_error(log_file, message);
+      steno_tape_error(log_file, message);
   }
 }
 
@@ -237,7 +231,7 @@ char* build_log_message(const char *header, const char *emoji, const char *messa
 }
 
 void clean_up(Tape *log_file) {
-  cleanup_tape(log_file);
+  steno_tape_cleanup(log_file);
   hid_exit();
 }
 
