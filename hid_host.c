@@ -25,8 +25,8 @@ int main(int argc, char *argv[]) {
   // REF: https://github.com/libusb/hidapi/blob/master/mac/hidapi_darwin.h#L68
   hid_darwin_set_open_exclusive(HID_DARWIN_NON_EXCLUSIVE_MODE);
 
-  hid_device *device = get_or_open_device();
-  if (!device) {
+  hid_device *handle = get_or_open_device();
+  if (!handle) {
     steno_tape_error(tape, DEVICE_OPEN_FAIL_MESSAGE);
     clean_up(tape);
     return -1;
@@ -36,18 +36,18 @@ int main(int argc, char *argv[]) {
   memset(buf, 0, sizeof(buf));
   buf[0] = arg;
 
-  res = hid_write(device, buf, BUFFER_LENGTH);
+  res = hid_write(handle, buf, BUFFER_LENGTH);
 
   if (res < 0) {
     printf("Unable to write()\n");
-    printf("Error: %ls\n", hid_error(device));
+    printf("Error: %ls\n", hid_error(handle));
     steno_tape_error(tape, DEVICE_WRITE_FAIL_MESSAGE);
   } else {
-    hid_set_nonblocking(device, ENABLE_NONBLOCKING);
-    read_device_message(device, buf, tape);
+    hid_set_nonblocking(handle, ENABLE_NONBLOCKING);
+    read_device_message(handle, buf, tape);
   }
 
-  hid_close(device);
+  hid_close(handle);
   clean_up(tape);
   return 0;
 }
@@ -114,38 +114,38 @@ int is_target_device(struct hid_device_info *device) {
 
 hid_device* open_device(void) {
   int num_open_retries = 0;
-  hid_device *device = NULL;
+  hid_device *handle = NULL;
 
-  while (!device && num_open_retries < HID_OPEN_MAX_RETRIES) {
+  while (!handle && num_open_retries < HID_OPEN_MAX_RETRIES) {
     printf("Attempting to open()...\n");
-    device = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
+    handle = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
 
-    if (device) {
-      printf("HID message: %ls\n", hid_error(device));
+    if (handle) {
+      printf("HID message: %ls\n", hid_error(handle));
       break;
     }
 
-    printf("HID message: %ls\n", hid_error(device));
+    printf("HID message: %ls\n", hid_error(handle));
     printf("Device open retries: %d\n", ++num_open_retries);
     usleep(HID_OPEN_SLEEP_MICROSECONDS);
   }
 
-  if (!device) {
+  if (!handle) {
     printf("Unable to open device after %d retries\n", HID_OPEN_MAX_RETRIES);
-    hid_close(device);
+    hid_close(handle);
     return NULL;
   }
 
-  return device;
+  return handle;
 }
 
-void read_device_message(hid_device *device, unsigned char *buf, Tape *tape) {
+void read_device_message(hid_device *handle, unsigned char *buf, Tape *tape) {
   int res = 0;
   int num_read_retries = 0;
   const char *message;
 
   while (res == 0 && num_read_retries < HID_READ_MAX_RETRIES) {
-    res = hid_read(device, buf, BUFFER_LENGTH);
+    res = hid_read(handle, buf, BUFFER_LENGTH);
 
     if (res == 0) {
       printf("Waiting to read()...\n");
@@ -156,7 +156,7 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *tape) {
 
     if (res < 0) {
       printf("Error: Unable to read()\n");
-      printf("HID message: %ls\n", hid_error(device));
+      printf("HID message: %ls\n", hid_error(handle));
       print_buffer(buf);
       steno_tape_error(tape, DEVICE_READ_FAIL_MESSAGE);
       break;
@@ -171,7 +171,7 @@ void read_device_message(hid_device *device, unsigned char *buf, Tape *tape) {
     print_buffer(buf);
     steno_tape_error(tape, DEVICE_READ_FAIL_MESSAGE);
   } else if (res > 0) {
-    printf("HID message: %ls\n", hid_error(device));
+    printf("HID message: %ls\n", hid_error(handle));
     print_buffer(buf);
     log_out_read_message(buf[1], tape);
   }
