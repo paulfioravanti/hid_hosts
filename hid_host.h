@@ -7,7 +7,7 @@
 #include <stdlib.h>        // strtol
 #include <string.h>        // memset, strlen
 #include <unistd.h>        // usleep
-#include "steno_tape.h"    // steno_tape_cleanup, steno_tape_error,
+#include <steno_tape.h>    // steno_tape_cleanup, steno_tape_error,
                            // steno_tape_gaming_mode, steno_tape_init,
                            // steno_tape_mode_unchanged, steno_tape_steno_mode
 
