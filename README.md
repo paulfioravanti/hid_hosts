@@ -42,9 +42,19 @@ This version of the host I use, and changes/improvements will be focused there.
 
 #### Prerequisites
 
-Feel free to compile as you see fit, but I use [pkg-config][] ([repo][pkg-config
-repo]) to provide an easier interface to include libraries. You can install it
-via your operating system package manager, or use Homebrew if you use macOS:
+The HID host uses the [Steno Tape][] library to output custom entries to the
+steno tape, so that needs to be installed:
+
+```sh
+git clone git@github.com:paulfioravanti/steno_tape.git
+cd steno_tape
+make install
+```
+
+Feel free to compile the host as you see fit, but I use [pkg-config][]
+([repo][pkg-config repo]) to provide an easier interface to include libraries.
+You can install it via your operating system package manager, or use Homebrew if
+you use macOS:
 
 ```sh
 brew install pkg-config
@@ -133,4 +143,5 @@ More info at:
 [pkg-config repo]: https://gitlab.freedesktop.org/pkg-config/pkg-config
 [QMK]: https://qmk.fm/
 [Raw HID]: https://docs.qmk.fm/#/feature_rawhid
+[Steno Tape]: https://github.com/paulfioravanti/steno_tape
 [USB]: https://en.wikipedia.org/wiki/USB
