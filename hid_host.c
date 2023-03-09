@@ -119,13 +119,12 @@ hid_device* open_device(void) {
   while (!handle && num_open_retries < HID_OPEN_MAX_RETRIES) {
     printf("Attempting to open()...\n");
     handle = hid_open(VENDOR_ID, PRODUCT_ID, NULL);
+    printf("HID message: %ls\n", hid_error(handle));
 
     if (handle) {
-      printf("HID message: %ls\n", hid_error(handle));
       break;
     }
 
-    printf("HID message: %ls\n", hid_error(handle));
     printf("Device open retries: %d\n", ++num_open_retries);
     usleep(HID_OPEN_SLEEP_MICROSECONDS);
   }
