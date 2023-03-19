@@ -10,6 +10,7 @@
 #include <steno_tape.h>    // steno_tape_cleanup, steno_tape_error,
                            // steno_tape_gaming_mode, steno_tape_init,
                            // steno_tape_mode_unchanged, steno_tape_steno_mode
+                           // Tape
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
