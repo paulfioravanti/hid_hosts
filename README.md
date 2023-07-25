@@ -22,6 +22,8 @@ firmware:
 
 ## Prerequisites
 
+### HIDAPI
+
 The [HIDAPI][] library is required to open up HID communication channels, so
 install it with your operating system's package manager. HIDAPI provides some
 minimal information about this in their [Installing HIDAPI][] section, but if
@@ -31,16 +33,7 @@ you are using macOS, you can install it with [Homebrew][]:
 brew install hidapi
 ```
 
-## Implementations
-
-I started out by making a short HID host using [NodeJS][], but then adapted that
-code to make a [C][] version. Both versions are included in this repository.
-
-### C
-
-This version of the host I use, and changes/improvements will be focused there.
-
-#### Prerequisites
+### Steno Tape
 
 The HID host uses the [Steno Tape][] library to output custom entries to the
 steno tape, so that needs to be installed:
@@ -51,6 +44,8 @@ cd steno_tape
 make install
 ```
 
+### `pkg-config`
+
 Feel free to compile the host as you see fit, but I use [pkg-config][]
 ([repo][pkg-config repo]) to provide an easier interface to include libraries.
 You can install it via your operating system package manager, or use Homebrew if
@@ -60,13 +55,17 @@ you use macOS:
 brew install pkg-config
 ```
 
-#### Compile
+## Compile
+
+If you use `pkg-config`, you can use the included build file:
 
 ```sh
 ./build.sh
 ```
 
-#### Run
+Otherwise, feel free to use it as a guide to make your own.
+
+## Run
 
 Currently, the script only accounts for integers to be sent through as command
 line parameters, which are then received in [my Georgi keymap][].
@@ -76,34 +75,10 @@ line parameters, which are then received in [my Georgi keymap][].
 ./hid_host 2
 ```
 
-I'm sure there is room for improvement here as I am not a C programmer, and I do
-notice that errors can happen occasionally for reasons currently unknown to me.
-But, for the most part, it currently _seems_ to be fit for its limited purpose.
-
-### Node JS
-
-This version of the host was my first attempt at writing a host, since I find
-NodeJS a bit less scary than C. However, now that I have the C version, I use it
-over this one, and its inclusion in this repository can just be considered a
-first iteration, and for demonstration purposes only.
-
-#### Prerequistes
-
-This requires global installation of the [node-hid][] library via [npm][]:
-
-```sh
-npm install -g node-hid
-```
-
-#### Run
-
-Currently, the script only accounts for integers to be sent through as command
-line parameters, which are then received in [my Georgi keymap][].
-
-```sh
-node hidHost.js 1
-node hidHost.js 2
-```
+I'm sure there is room for improvement here as I am not a [C][] programmer, and
+I do notice that errors can happen occasionally for reasons currently unknown to
+me.  But, for the most part, it currently _seems_ to be fit for its limited
+purpose.
 
 ## Troubleshooting
 
@@ -128,9 +103,6 @@ More info at:
 [Is it possible to adjust the key repeat rate?]: https://karabiner-elements.pqrs.org/docs/help/how-to/key-repeat/
 [keyboard list]: https://github.com/qmk/qmk_firmware/tree/master/keyboards
 [my Georgi keymap]: https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/keymap.c
-[node-hid]: https://github.com/node-hid/node-hid
-[NodeJS]: https://nodejs.org/en/
-[npm]: https://www.npmjs.com/
 [pkg-config]: https://en.wikipedia.org/wiki/Pkg-config
 [pkg-config repo]: https://gitlab.freedesktop.org/pkg-config/pkg-config
 [QMK]: https://qmk.fm/
