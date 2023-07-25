@@ -102,7 +102,7 @@ More info at:
 [Installing HIDAPI]: https://github.com/libusb/hidapi#installing-hidapi
 [Is it possible to adjust the key repeat rate?]: https://karabiner-elements.pqrs.org/docs/help/how-to/key-repeat/
 [keyboard list]: https://github.com/qmk/qmk_firmware/tree/master/keyboards
-[my Georgi keymap]: https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/keymap.c
+[my Georgi keymap]: https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/user/hid.c
 [pkg-config]: https://en.wikipedia.org/wiki/Pkg-config
 [pkg-config repo]: https://gitlab.freedesktop.org/pkg-config/pkg-config
 [QMK]: https://qmk.fm/
