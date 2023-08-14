@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-int parse_arguments(int argc, char *argv[]) {
+static int parse_arguments(int argc, char *argv[]) {
   // Requires only one argument
   // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
   if (argc != 2 || strlen(argv[1]) == 0) {
@@ -120,7 +120,7 @@ int parse_arguments(int argc, char *argv[]) {
   return arg;
 }
 
-hid_device* get_or_open_device(void) {
+static hid_device* get_or_open_device(void) {
   struct hid_device_info *devices, *current_device;
   hid_device *device = NULL;
 
@@ -151,11 +151,11 @@ hid_device* get_or_open_device(void) {
   return open_device();
 }
 
-int is_target_device(struct hid_device_info *device) {
+static int is_target_device(struct hid_device_info *device) {
   return device->vendor_id == VENDOR_ID && device->product_id == PRODUCT_ID;
 }
 
-hid_device* open_device(void) {
+static hid_device* open_device(void) {
   int num_open_retries = 0;
   hid_device *handle = NULL;
 
@@ -181,7 +181,11 @@ hid_device* open_device(void) {
   return handle;
 }
 
-void read_device_message(hid_device *handle, unsigned char *buf, Tape *tape) {
+static void read_device_message(
+  hid_device *handle,
+  unsigned char *buf,
+  Tape *tape
+) {
   int res = 0;
   int num_read_retries = 0;
   const char *message;
@@ -219,7 +223,7 @@ void read_device_message(hid_device *handle, unsigned char *buf, Tape *tape) {
   }
 }
 
-void log_out_read_message(int message, Tape *tape) {
+static void log_out_read_message(int message, Tape *tape) {
   switch (message) {
     case GAMING_MODE:
       steno_tape_gaming_mode(tape);
@@ -246,12 +250,12 @@ void log_out_read_message(int message, Tape *tape) {
   }
 }
 
-void clean_up(Tape *tape) {
+static void clean_up(Tape *tape) {
   steno_tape_cleanup(tape);
   hid_exit();
 }
 
-void print_buffer(unsigned char *buf) {
+static void print_buffer(unsigned char *buf) {
   for (int i = 0; i < BUFFER_LENGTH; i++)
     printf("%02x ", (unsigned int) buf[i]);
 }
