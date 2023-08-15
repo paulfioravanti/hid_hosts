@@ -8,11 +8,10 @@
 #include <stdlib.h>        // strtol
 #include <string.h>        // memset, strlen
 #include <unistd.h>        // usleep
-#include <steno_tape.h>    // MAX_MESSAGE_LENGTH, steno_tape_cleanup,
+#include <steno_tape.h>    // STENO_TAPE_MAX_MESSAGE_LENGTH, steno_tape_cleanup,
                            // steno_tape_error, steno_tape_gaming_mode,
                            // steno_tape_init, steno_tape_mode_unchanged,
                            // steno_tape_steno_mode, Tape
-#include "hid_host.h"
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
@@ -42,6 +41,19 @@ static const char DEVICE_READ_FAIL_MESSAGE[] =
   " Couldn't READ from device!\n";
 static const char HID_READ_BAD_VALUE_MESSAGE[] =
   " Unexpected response from device: ";
+
+static int parse_arguments(int argc, char *argv[]);
+static hid_device* get_or_open_device(void);
+static int is_target_device(struct hid_device_info *device);
+static hid_device* open_device(void);
+static void read_device_message(
+  hid_device *handle,
+  unsigned char *buf,
+  Tape *tape
+);
+static void log_out_read_message(int message, Tape *tape);
+static void clean_up(Tape *tape);
+static void print_buffer(unsigned char *buf);
 
 int main(int argc, char *argv[]) {
   int arg = parse_arguments(argc, argv);
@@ -237,7 +249,7 @@ static void log_out_read_message(int message, Tape *tape) {
     default:
       printf("Message read from device: %d\n", message);
       const char *error_message;
-      char buffer[MAX_MESSAGE_LENGTH];
+      char buffer[STENO_TAPE_MAX_MESSAGE_LENGTH];
       snprintf(
         buffer,
         sizeof(buffer),
