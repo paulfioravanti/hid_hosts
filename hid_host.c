@@ -8,10 +8,11 @@
 #include <stdlib.h>        // strtol
 #include <string.h>        // memset, strlen
 #include <unistd.h>        // usleep
-#include <steno_tape.h>    // STENO_TAPE_MAX_MESSAGE_LENGTH, steno_tape_cleanup,
-                           // steno_tape_error, steno_tape_gaming_mode,
-                           // steno_tape_init, steno_tape_mode_unchanged,
-                           // steno_tape_steno_mode, Tape
+#include <steno_tape.h>    // STENO_TAPE_ENTRY_MAX_LENGTH, steno_tape_cleanup,
+                           // steno_tape_init, steno_tape_log_error,
+                           // steno_tape_log_gaming_mode,
+                           // steno_tape_log_mode_unchanged,
+                           // steno_tape_log_steno_mode, Tape
 
 // VID and PID for Georgi
 // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]) {
   int res = hid_init();
   if (res < 0) {
     printf("Unable to initialize HIDAPI library\n");
-    steno_tape_error(tape, HID_INIT_FAIL_MESSAGE);
+    steno_tape_log_error(tape, HID_INIT_FAIL_MESSAGE);
     clean_up(tape);
     return -1;
   }
@@ -82,7 +83,7 @@ int main(int argc, char *argv[]) {
 
   hid_device *handle = get_or_open_device();
   if (!handle) {
-    steno_tape_error(tape, DEVICE_OPEN_FAIL_MESSAGE);
+    steno_tape_log_error(tape, DEVICE_OPEN_FAIL_MESSAGE);
     clean_up(tape);
     return -1;
   }
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]) {
   if (res < 0) {
     printf("Unable to write()\n");
     printf("Error: %ls\n", hid_error(handle));
-    steno_tape_error(tape, DEVICE_WRITE_FAIL_MESSAGE);
+    steno_tape_log_error(tape, DEVICE_WRITE_FAIL_MESSAGE);
   } else {
     hid_set_nonblocking(handle, ENABLE_NONBLOCKING);
     read_device_message(handle, buf, tape);
@@ -216,7 +217,7 @@ static void read_device_message(
       printf("Error: Unable to read()\n");
       printf("HID message: %ls\n", hid_error(handle));
       print_buffer(buf);
-      steno_tape_error(tape, DEVICE_READ_FAIL_MESSAGE);
+      steno_tape_log_error(tape, DEVICE_READ_FAIL_MESSAGE);
       break;
     }
   }
@@ -227,7 +228,7 @@ static void read_device_message(
     perror("hid_read");
     fprintf(stderr, "hid_read failed: %s\n", strerror(errno));
     print_buffer(buf);
-    steno_tape_error(tape, DEVICE_READ_FAIL_MESSAGE);
+    steno_tape_log_error(tape, DEVICE_READ_FAIL_MESSAGE);
   } else if (res > 0) {
     printf("HID message: %ls\n", hid_error(handle));
     print_buffer(buf);
@@ -238,18 +239,18 @@ static void read_device_message(
 static void log_out_read_message(int message, Tape *tape) {
   switch (message) {
     case GAMING_MODE:
-      steno_tape_gaming_mode(tape);
+      steno_tape_log_gaming_mode(tape);
       break;
     case STENO_MODE:
-      steno_tape_steno_mode(tape);
+      steno_tape_log_steno_mode(tape);
       break;
     case MODE_UNCHANGED:
-      steno_tape_mode_unchanged(tape);
+      steno_tape_log_mode_unchanged(tape);
       break;
     default:
       printf("Message read from device: %d\n", message);
       const char *error_message;
-      char buffer[STENO_TAPE_MAX_MESSAGE_LENGTH];
+      char buffer[STENO_TAPE_ENTRY_MAX_LENGTH];
       snprintf(
         buffer,
         sizeof(buffer),
@@ -258,7 +259,7 @@ static void log_out_read_message(int message, Tape *tape) {
         message
       );
       error_message = buffer;
-      steno_tape_error(tape, error_message);
+      steno_tape_log_error(tape, error_message);
   }
 }
 
