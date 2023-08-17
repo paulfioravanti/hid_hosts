@@ -67,18 +67,25 @@ Otherwise, feel free to use it as a guide to make your own.
 
 ## Run
 
-Currently, the script only accounts for integers to be sent through as command
-line parameters, which are then received in [my Georgi keymap][].
+Currently, the C executable only accounts for integers to be sent through as
+command line parameters, which are then received in [my Georgi keymap][].
 
 ```sh
 ./hid_host 1
 ./hid_host 2
 ```
 
-I'm sure there is room for improvement here as I am not a [C][] programmer, and
-I do notice that errors can happen occasionally for reasons currently unknown to
-me.  But, for the most part, it currently _seems_ to be fit for its limited
-purpose.
+In order to run the host with an [Elgato Stream Deck Pedal][], I needed to
+create a simple [shell][] wrapper around the [C][] executable
+(`hid_host_client.sh`), since the only kinds of external scripts [Stream Deck][]
+seems to be able to run are shell scripts:
+
+![Stream Deck Doom Typist config][Stream Deck Doom Typist config image url]
+
+```sh
+./hid_host_client.sh 1
+./hid_host_client.sh 2
+```
 
 ## Troubleshooting
 
@@ -94,6 +101,7 @@ More info at:
 - [How to increase keyboard key repeat rate on OS X?][]
 
 [C]: https://en.wikipedia.org/wiki/C_(programming_language)
+[Elgato Stream Deck Pedal]: https://www.elgato.com/us/en/p/stream-deck-pedal
 [Georgi]: https://www.gboards.ca/product/georgi
 [HIDAPI]: https://github.com/libusb/hidapi
 [Homebrew]: https://brew.sh/
@@ -107,5 +115,8 @@ More info at:
 [pkg-config repo]: https://gitlab.freedesktop.org/pkg-config/pkg-config
 [QMK]: https://qmk.fm/
 [Raw HID]: https://docs.qmk.fm/#/feature_rawhid
+[shell]: https://en.wikipedia.org/wiki/Shell_script
 [Steno Tape]: https://github.com/paulfioravanti/steno_tape
+[Stream Deck]: https://www.elgato.com/us/en/s/welcome-to-stream-deck
+[Stream Deck Doom Typist config image url]: ./assets/stream-deck-doom-typist.jpg
 [USB]: https://en.wikipedia.org/wiki/USB

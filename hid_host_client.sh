@@ -1,5 +1,6 @@
 #!/bin/bash
-# This script was created for use with an Elgato Stream Deck Pedal
+# This client script was created for use with an Elgato Stream Deck Pedal since
+# the only kinds of external scripts it can call are shell scripts.
 # Assign a System > Open action to a pedal and reference this script
 # in the "App/File" field.
 # See `raw_hid_receive` definition in my Georgi keymap for how the parameter
