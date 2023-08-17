@@ -120,6 +120,8 @@ flowchart BT
   TapeLogFile["Tape Log\n(tapey_tape.txt)"]
   TapeFilterScript["Tape Filter Script"]
 
+  classDef current fill:#ffb3b3, stroke:#333, stroke-width:4px, color:black
+
   subgraph Alfred
     direction TB
     StenoTapeCustomEntriesWorkflow
@@ -133,9 +135,10 @@ flowchart BT
 
   subgraph HIDHosts["HID Hosts"]
     direction TB
-    HIDHost
-    HIDHostClient
+    HIDHost:::current
+    HIDHostClient:::current
   end
+  class HIDHosts current
 
   subgraph QMKFirmware["QMK Firmware"]
     direction TB
