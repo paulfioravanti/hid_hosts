@@ -107,15 +107,16 @@ More info at:
 title: Steno Tape Custom Entries
 ---
 flowchart BT
-  GeorgiHID["HID"]
-  GeorgiProcessRecordUser["Process Record User"]
+  FirmwareHID["HID"]
+  Keyboard[\"Keyboard"/]
+  FirmwareProcessRecordUser["Process Record User"]
   HIDHost["HID Host"]
   HIDHostClient["HID Host Client"]
   StenoTapeLibrary["Steno Tape Library"]
   StenoTapeClient["Steno Tape Client"]
   StenoTapeCustomEntriesWorkflow["Steno Tape Custom Entries Workflow"]
   StreamDeck["Stream Deck"]
-  StreamDeckPedal["Stream Deck Pedal"]
+  StreamDeckPedal[/"Stream Deck Pedal"\]
   TapeyTape[Tapey Tape]
   TapeLogFile["Tape Log\n(tapey_tape.txt)"]
   TapeFilterScript["Tape Filter Script"]
@@ -130,63 +131,61 @@ flowchart BT
   subgraph Elgato
     direction TB
     StreamDeck
-    StreamDeckPedal
   end
 
   subgraph HIDHosts["HID Hosts"]
     direction TB
     HIDHost:::current
-    HIDHostClient:::current
+    HIDHostClient:::current -- "`./hid_host`" --> HIDHost
   end
   class HIDHosts current
 
   subgraph QMKFirmware["QMK Firmware"]
-    direction TB
-    subgraph Georgi
-      GeorgiHID
-      GeorgiProcessRecordUser
-    end
+    direction LR
+    FirmwareHID
+    FirmwareProcessRecordUser
   end
 
   subgraph Plover
     direction TB
     subgraph Plugins
-      TapeyTape
       TapeLogFile
+      TapeyTape -- outputs to --> TapeLogFile
     end
   end
 
   subgraph StenoTape["Steno Tape"]
     direction TB
     StenoTapeLibrary
-    StenoTapeClient
+    StenoTapeClient -- "calls steno_tape_* API" --> StenoTapeLibrary
     TapeFilterScript
   end
 
-  TapeyTape -- outputs to --> TapeLogFile
+  Terminal(Terminal) -- "`./run-tape-feed.sh --filter`" --> TapeFilterScript
   TapeFilterScript -- filters --> TapeLogFile
   StenoTapeLibrary -- outputs to --> TapeLogFile
-  StenoTapeClient -- "calls steno_tape_* API" --> StenoTapeLibrary
   StenoTapeCustomEntriesWorkflow -- "`./steno_tape_client`" --> StenoTapeClient
-  GeorgiProcessRecordUser -- "SEND_STRING(...)" --> StenoTapeCustomEntriesWorkflow
+  FirmwareProcessRecordUser -- "SEND_STRING(...)" --> StenoTapeCustomEntriesWorkflow
+  Keyboard -- uses --> QMKFirmware
+  Keyboard -. records keystrokes through .-> TapeyTape
   HIDHost -- "calls steno_tape_* API" --> StenoTapeLibrary
-  HIDHostClient -- "`./hid_host`" --> HIDHost
-  GeorgiHID -- "raw_hid_send/\nhid_read" --> HIDHost
-  HIDHost -- "hid_write/\nraw_hid_receive" --> GeorgiHID
+  FirmwareHID -. "raw_hid_send/\nhid_read" .-> HIDHost
+  HIDHost -- "hid_write/\nraw_hid_receive" --> FirmwareHID
   StreamDeck -- "`./hid_host_client.sh`" --> HIDHostClient
   StreamDeckPedal -- calls --> StreamDeck
 
-  click Dictionaries "https://github.com/paulfioravanti/steno-dictionaries" "Steno Dictionaries" _blank
-  click GeorgiHID "https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/user/hid.c" "Georgi HID" _blank
-  click GeorgiProcessRecordUser "https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/user/process_record_user.c" "Georgi Process Record User" _blank
-  click HIDHost "https://github.com/paulfioravanti/hid_hosts/blob/main/hid_host.c" "HID Host" _blank
-  click HIDHostClient "https://github.com/paulfioravanti/hid_hosts/blob/main/hid_host_client.sh" "HID Host Client" _blank
-  click StenoTapeClient "https://github.com/paulfioravanti/steno_tape/blob/main/clients/steno_tape_client.c" "Steno Tape Client" _blank
-  click StenoTapeCustomEntriesWorkflow "https://github.com/paulfioravanti/dotfiles/tree/master/macos/alfred" "Steno Tape Custom Entries Workflow" _blank
-  click StenoTapeLibrary "https://github.com/paulfioravanti/steno_tape/blob/main/src/steno_tape.c" "Steno Tape" _blank
-  click StreamDeck "https://www.elgato.com/us/en/s/welcome-to-stream-deck" "Stream Deck" _blank
-  click TapeyTape "https://github.com/rabbitgrowth/plover-tapey-tape" "Tapey Tape" _blank
-  click TapeFilterScript "https://github.com/paulfioravanti/steno_tape/blob/main/bin/run-tape-feed.sh" "Tape Filter Script" _blank
+  click Dictionaries href "https://github.com/paulfioravanti/steno-dictionaries" "Steno Dictionaries" _blank
+  click FirmwareHID href "https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/user/hid.c" "Georgi HID" _blank
+  click FirmwareProcessRecordUser href "https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/user/process_record_user.c" "Georgi Process Record User" _blank
+  click HIDHost href "https://github.com/paulfioravanti/hid_hosts/blob/main/hid_host.c" "HID Host" _blank
+  click HIDHostClient href "https://github.com/paulfioravanti/hid_hosts/blob/main/hid_host_client.sh" "HID Host Client" _blank
+  click StenoTapeClient href "https://github.com/paulfioravanti/steno_tape/blob/main/clients/steno_tape_client.c" "Steno Tape Client" _blank
+  click StenoTapeCustomEntriesWorkflow href "https://github.com/paulfioravanti/dotfiles/tree/master/macos/alfred" "Steno Tape Custom Entries Workflow" _blank
+  click StenoTapeLibrary href "https://github.com/paulfioravanti/steno_tape/blob/main/src/steno_tape.c" "Steno Tape" _blank
+  click StreamDeck href "https://www.elgato.com/us/en/s/welcome-to-stream-deck" "Stream Deck" _blank
+  click StreamDeckPedal href "https://www.elgato.com/us/en/p/stream-deck-pedal" "Stream Deck Pedal" _blank
+  click TapeyTape href "https://github.com/rabbitgrowth/plover-tapey-tape" "Tapey Tape" _blank
+  click TapeFilterScript href "https://github.com/paulfioravanti/steno_tape/blob/main/bin/run-tape-feed.sh" "Tape Filter Script" _blank
 ```
 
 [C]: https://en.wikipedia.org/wiki/C_(programming_language)
