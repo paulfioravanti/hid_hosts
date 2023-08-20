@@ -107,8 +107,7 @@ More info at:
 title: Steno Tape Custom Entries
 ---
 flowchart BT
-  FirmwareHID["HID"]
-  Keyboard[\"Keyboard"/]
+  FirmwareRawHID["Raw HID"]
   FirmwareProcessRecordUser["Process Record User"]
   HIDHost["HID Host"]
   HIDHostClient["HID Host Client"]
@@ -116,66 +115,64 @@ flowchart BT
   StenoTapeClient["Steno Tape Client"]
   StenoTapeCustomEntriesWorkflow["Steno Tape Custom Entries Workflow"]
   StreamDeck["Stream Deck"]
-  StreamDeckPedal[/"Stream Deck Pedal"\]
+  StreamDeckPedal[/"STREAM DECK PEDAL"\]
   TapeyTape[Tapey Tape]
   TapeLogFile["Tape Log\n(tapey_tape.txt)"]
   TapeFilterScript["Tape Filter Script"]
 
   classDef current fill:#ffb3b3, stroke:#333, stroke-width:4px, color:black
 
-  subgraph Alfred
-    direction TB
-    StenoTapeCustomEntriesWorkflow
+  subgraph Computer["COMPUTER"]
+    subgraph Alfred["Alfred"]
+      StenoTapeCustomEntriesWorkflow
+    end
+
+    subgraph Elgato["Elgato"]
+      StreamDeck
+    end
+
+    subgraph HIDHosts["HID Hosts"]
+      HIDHost:::current
+      HIDHostClient:::current -- "`./hid_host`" --> HIDHost
+    end
+    class HIDHosts current
+
+    subgraph Plover["Plover"]
+      subgraph Plugins
+        TapeLogFile
+        TapeyTape -- outputs to --> TapeLogFile
+      end
+    end
+
+    subgraph StenoTape["Steno Tape"]
+      StenoTapeLibrary
+      StenoTapeClient -- "calls API" --> StenoTapeLibrary
+      TapeFilterScript
+    end
+
+    Terminal(Terminal)
   end
 
-  subgraph Elgato
-    direction TB
-    StreamDeck
-  end
-
-  subgraph HIDHosts["HID Hosts"]
-    direction TB
-    HIDHost:::current
-    HIDHostClient:::current -- "`./hid_host`" --> HIDHost
-  end
-  class HIDHosts current
-
-  subgraph QMKFirmware["QMK Firmware"]
-    direction LR
-    FirmwareHID
-    FirmwareProcessRecordUser
-  end
-
-  subgraph Plover
-    direction TB
-    subgraph Plugins
-      TapeLogFile
-      TapeyTape -- outputs to --> TapeLogFile
+  subgraph Keyboard["KEYBOARD"]
+    subgraph QMKFirmware["QMK Firmware"]
+      FirmwareProcessRecordUser
+      FirmwareRawHID
     end
   end
 
-  subgraph StenoTape["Steno Tape"]
-    direction TB
-    StenoTapeLibrary
-    StenoTapeClient -- "calls steno_tape_* API" --> StenoTapeLibrary
-    TapeFilterScript
-  end
-
-  Terminal(Terminal) -- "`./run-tape-feed.sh --filter`" --> TapeFilterScript
+  Terminal -- "`./run-tape-feed.sh --filter`" --> TapeFilterScript
   TapeFilterScript -- filters --> TapeLogFile
   StenoTapeLibrary -- outputs to --> TapeLogFile
   StenoTapeCustomEntriesWorkflow -- "`./steno_tape_client`" --> StenoTapeClient
   FirmwareProcessRecordUser -- "SEND_STRING(...)" --> StenoTapeCustomEntriesWorkflow
-  Keyboard -- uses --> QMKFirmware
-  Keyboard -. records keystrokes through .-> TapeyTape
-  HIDHost -- "calls steno_tape_* API" --> StenoTapeLibrary
-  FirmwareHID -. "raw_hid_send/\nhid_read" .-> HIDHost
-  HIDHost -- "hid_write/\nraw_hid_receive" --> FirmwareHID
+  HIDHost -- "calls API" --> StenoTapeLibrary
+  FirmwareRawHID -. "hid_read/\nraw_hid_send" .-> HIDHost
+  HIDHost -- "hid_write/\nraw_hid_receive" --> FirmwareRawHID
   StreamDeck -- "`./hid_host_client.sh`" --> HIDHostClient
-  StreamDeckPedal -- calls --> StreamDeck
+  StreamDeckPedal -- connects --> StreamDeck
 
   click Dictionaries href "https://github.com/paulfioravanti/steno-dictionaries" "Steno Dictionaries" _blank
-  click FirmwareHID href "https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/user/hid.c" "Georgi HID" _blank
+  click FirmwareRawHID href "https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/user/hid.c" "Georgi HID" _blank
   click FirmwareProcessRecordUser href "https://github.com/paulfioravanti/qmk_keymaps/blob/master/keyboards/gboards/georgi/keymaps/paulfioravanti/user/process_record_user.c" "Georgi Process Record User" _blank
   click HIDHost href "https://github.com/paulfioravanti/hid_hosts/blob/main/hid_host.c" "HID Host" _blank
   click HIDHostClient href "https://github.com/paulfioravanti/hid_hosts/blob/main/hid_host_client.sh" "HID Host Client" _blank
