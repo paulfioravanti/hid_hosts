@@ -26,7 +26,6 @@
 enum {
   BUFFER_LENGTH = 2,
   ENABLE_NONBLOCKING = 1,
-  HID_DARWIN_NON_EXCLUSIVE_MODE = 0,
   HID_OPEN_MAX_RETRIES = 30,
   HID_OPEN_SLEEP_MICROSECONDS = 15000, // 15 ms
   HID_READ_MAX_RETRIES = 2,
@@ -78,9 +77,6 @@ int main(int argc, char *argv[]) {
     clean_up(tape);
     return -1;
   }
-  // REF: https://github.com/libusb/hidapi/blob/master/hidtest/test.c#L102
-  // REF: https://github.com/libusb/hidapi/blob/master/mac/hidapi_darwin.h#L68
-  hid_darwin_set_open_exclusive(HID_DARWIN_NON_EXCLUSIVE_MODE);
 
   struct hid_device_info *devices, *current_device;
   devices = hid_enumerate(VENDOR_ID, PRODUCT_ID);
