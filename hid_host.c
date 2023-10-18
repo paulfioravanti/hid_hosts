@@ -25,7 +25,7 @@
 
 enum {
   BUFFER_LENGTH = 2,
-  ENABLE_NONBLOCKING = 1,
+  // ENABLE_NONBLOCKING = 1,
   HID_OPEN_MAX_RETRIES = 30,
   HID_OPEN_SLEEP_MICROSECONDS = 15000, // 15 ms
   HID_READ_MAX_RETRIES = 2,
@@ -117,7 +117,10 @@ int main(int argc, char *argv[]) {
       printf("Error: %ls\n", hid_error(handle));
       steno_tape_log_error(tape, DEVICE_WRITE_FAIL_MESSAGE);
     } else {
-      hid_set_nonblocking(handle, ENABLE_NONBLOCKING);
+      // NOTE: I'm not currently sure whether this needs to be set explicitly,
+      // but things seem to work without it set, so keep it commented out for
+      // now, pending deletion.
+      // hid_set_nonblocking(handle, ENABLE_NONBLOCKING);
       read_device_message(handle, buf, tape);
     }
     break;
