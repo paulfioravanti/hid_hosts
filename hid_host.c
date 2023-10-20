@@ -46,6 +46,7 @@ static const char HID_READ_BAD_VALUE_MESSAGE[] =
   " Unexpected response from device: ";
 
 static int parse_arguments(int argc, char *argv[]);
+static void interface_with_device(hid_device *handle, int arg, Tape *tape);
 static void read_device_message(
   hid_device *handle,
   unsigned char *buf,
@@ -77,10 +78,46 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
+  hid_device *handle = NULL;
+  interface_with_device(handle, arg, tape);
+
+  if (handle) {
+    hid_close(handle);
+  }
+
+  clean_up(tape);
+  return 0;
+}
+
+static int parse_arguments(int argc, char *argv[]) {
+  // Requires only one argument
+  // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
+  if (argc != 2 || strlen(argv[1]) == 0) {
+    printf("ERROR: Must provide a single non-empty argument\n");
+    return -1;
+  }
+
+  char *end_ptr;
+  errno = 0;
+  // REF: https://devdocs.io/c/string/byte/strtol
+  int arg = strtol(argv[1], &end_ptr, 16);
+
+  // Error out if:
+  // - an invalid character was found before the end of the string
+  // - overflow or underflow errors occurred
+  // - number is outside the limited capacity of an int
+  if (*end_ptr != '\0' || errno != 0 || arg < INT_MIN || arg > INT_MAX) {
+    printf("ERROR: Invalid argument %s\n", argv[1]);
+    return -1;
+  }
+
+  return arg;
+}
+
+static void interface_with_device(hid_device *handle, int arg, Tape *tape) {
   struct hid_device_info *devices, *current_device;
   devices = hid_enumerate(VENDOR_ID, PRODUCT_ID);
   current_device = devices;
-  hid_device *handle = NULL;
 
   while (current_device) {
     if (
@@ -109,8 +146,7 @@ int main(int argc, char *argv[]) {
     memset(buf, 0, sizeof(buf));
     buf[0] = arg;
 
-    res = hid_write(handle, buf, BUFFER_LENGTH);
-
+    int res = hid_write(handle, buf, BUFFER_LENGTH);
     if (res < 0) {
       printf("Unable to write() to handle\n");
       printf("Error: %ls\n", hid_error(handle));
@@ -121,38 +157,7 @@ int main(int argc, char *argv[]) {
     break;
   }
 
-  if (handle) {
-    hid_close(handle);
-  }
-
   hid_free_enumeration(devices);
-  clean_up(tape);
-  return 0;
-}
-
-static int parse_arguments(int argc, char *argv[]) {
-  // Requires only one argument
-  // REF: https://stackoverflow.com/questions/9748393/how-can-i-get-argv-as-int
-  if (argc != 2 || strlen(argv[1]) == 0) {
-    printf("ERROR: Must provide a single non-empty argument\n");
-    return -1;
-  }
-
-  char *end_ptr;
-  errno = 0;
-  // REF: https://devdocs.io/c/string/byte/strtol
-  int arg = strtol(argv[1], &end_ptr, 16);
-
-  // Error out if:
-  // - an invalid character was found before the end of the string
-  // - overflow or underflow errors occurred
-  // - number is outside the limited capacity of an int
-  if (*end_ptr != '\0' || errno != 0 || arg < INT_MIN || arg > INT_MAX) {
-    printf("ERROR: Invalid argument %s\n", argv[1]);
-    return -1;
-  }
-
-  return arg;
 }
 
 static void read_device_message(
