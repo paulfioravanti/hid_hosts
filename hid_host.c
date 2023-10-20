@@ -23,6 +23,9 @@ enum Device {
   // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
   VENDOR_ID = 0xFEED,
   PRODUCT_ID = 0x1337,
+  // PID for Multisteno
+  // REF: https://github.com/nkotech/Multisteno-Firmware/blob/main/keyboards/noll/multisteno/info.json
+  // PRODUCT_ID = 0x3622,
   // Usage values may be different depending on machine/OS etc but are crucial
   // for stability in talking to the keyboard.
   // If they are unknown, set to 0 to allow enumerating over all devices, and
