@@ -14,21 +14,32 @@
                            // steno_tape_log_mode_unchanged,
                            // steno_tape_log_steno_mode, Tape
 
-// VID and PID for Georgi
-// REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
-#define VENDOR_ID  0xFEED
-#define PRODUCT_ID 0x1337
-// Usage values may be different depending on machine/OS etc but are crucial for
-// stability in talking to the keyboard.
-#define USAGE 0x61
-#define USAGE_PAGE 0xFF60
-
 enum {
   BUFFER_LENGTH = 2,
+};
+
+enum Device {
+  // VID and PID for Georgi
+  // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
+  VENDOR_ID = 0xFEED,
+  PRODUCT_ID = 0x1337,
+  // Usage values may be different depending on machine/OS etc but are crucial
+  // for stability in talking to the keyboard.
+  // If they are unknown, set to 0 to allow enumerating over all devices, and
+  // check debug messages to see which usage values resulted in success. Then
+  // hard code those values here.
+  USAGE = 0x61,
+  USAGE_PAGE = 0xFF60
+};
+
+enum HID {
   HID_OPEN_MAX_RETRIES = 30,
   HID_OPEN_SLEEP_MICROSECONDS = 15000, // 15 ms
   HID_READ_MAX_RETRIES = 2,
-  HID_READ_SLEEP_MICROSECONDS = 500000, // 500 ms
+  HID_READ_SLEEP_MICROSECONDS = 500000 // 500 ms
+};
+
+enum Modes {
   MODE_GAMING = 0x3,
   MODE_STENO = 0x4,
   MODE_UNCHANGED = 0x9
@@ -47,7 +58,7 @@ static const char HID_READ_BAD_VALUE_MESSAGE[] =
 
 static int parse_arguments(int argc, char *argv[]);
 static void interface_with_device(hid_device *handle, int arg, Tape *tape);
-static void read_device_message(
+static int read_device_message(
   hid_device *handle,
   unsigned char *buf,
   Tape *tape
@@ -118,28 +129,31 @@ static void interface_with_device(hid_device *handle, int arg, Tape *tape) {
   struct hid_device_info *devices, *current_device;
   devices = hid_enumerate(VENDOR_ID, PRODUCT_ID);
   current_device = devices;
+  int usage_known = (USAGE != 0) && (USAGE_PAGE != 0);
 
   while (current_device) {
-    if (
-      current_device->usage != USAGE ||
-      current_device->usage_page != USAGE_PAGE
-    ) {
-      printf(
-        "Skipping -- Usage (page): 0x%hx (0x%hx)\n",
-        current_device->usage,
-        current_device->usage_page
-      );
+    unsigned short usage = current_device->usage;
+    unsigned short usage_page = current_device->usage_page;
+
+    if (usage_known && (usage != USAGE || usage_page != USAGE_PAGE)) {
+      printf("Skipping -- Usage (page): 0x%hx (0x%hx)\n", usage, usage_page);
       current_device = current_device->next;
       continue;
     }
 
+    printf("Opening -- Usage (page): 0x%hx (0x%hx)...\n", usage, usage_page);
     handle = hid_open_path(current_device->path);
 
     if (!handle) {
       printf("Failed to open device path!\n");
       printf("HID message: %ls\n", hid_error(handle));
       steno_tape_log_error(tape, DEVICE_OPEN_FAIL_MESSAGE);
-      break;
+      if (usage_known) {
+        break;
+      } else {
+        current_device = current_device->next;
+        continue;
+      }
     }
 
     unsigned char buf[BUFFER_LENGTH];
@@ -151,8 +165,16 @@ static void interface_with_device(hid_device *handle, int arg, Tape *tape) {
       printf("Unable to write() to handle\n");
       printf("Error: %ls\n", hid_error(handle));
       steno_tape_log_error(tape, DEVICE_WRITE_FAIL_MESSAGE);
+      if (!usage_known) {
+        current_device = current_device->next;
+        continue;
+      }
     } else {
-      read_device_message(handle, buf, tape);
+      res = read_device_message(handle, buf, tape);
+      if (res < 0 && !usage_known) {
+        current_device = current_device->next;
+        continue;
+      }
     }
     break;
   }
@@ -160,7 +182,7 @@ static void interface_with_device(hid_device *handle, int arg, Tape *tape) {
   hid_free_enumeration(devices);
 }
 
-static void read_device_message(
+static int read_device_message(
   hid_device *handle,
   unsigned char *buf,
   Tape *tape
@@ -193,6 +215,7 @@ static void read_device_message(
 
   printf("HID message: %ls\n", hid_error(handle));
   print_buffer(buf);
+  return res;
 }
 
 static void log_out_read_message(int message, Tape *tape) {
