@@ -20,6 +20,14 @@ firmware:
 - Substitute those values, as well as any payload changes you want to make, into
   whatever file in this repo you would like to use
 
+## Blog Post
+
+I wrote a post covering the pain points I went through in trying to get a stable
+HID connection to my Georgi, and the solution that got integrated to this repo's
+host code here:
+
+- _[Get on the Same Page as your HID Device][]_
+
 ## Prerequisites
 
 ### HIDAPI
@@ -188,6 +196,7 @@ flowchart BT
 [C]: https://en.wikipedia.org/wiki/C_(programming_language)
 [Elgato Stream Deck Pedal]: https://www.elgato.com/us/en/p/stream-deck-pedal
 [Georgi]: https://www.gboards.ca/product/georgi
+[Get on the Same Page as your HID Device]: https://www.paulfioravanti.com/blog/same-page-hid-device/
 [HIDAPI]: https://github.com/libusb/hidapi
 [Homebrew]: https://brew.sh/
 [How to increase keyboard key repeat rate on OS X?]: https://apple.stackexchange.com/questions/10467/how-to-increase-keyboard-key-repeat-rate-on-os-x
