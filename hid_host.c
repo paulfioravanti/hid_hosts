@@ -1,18 +1,11 @@
 #include <errno.h>         // errno
-#include <hidapi.h>        // hid_close, hid_device, hid_device_info, hid_error,
-                           // hid_exit, hid_init, hid_read, hid_write,
-                           // open_device
-#include <hidapi_darwin.h> // hid_darwin_set_open_exclusive
+#include <hidapi.h>        // hid_*
 #include <limits.h>        // INT_MAX, INT_MIN
 #include <stdio.h>         // printf, snprintf
 #include <stdlib.h>        // strtol
 #include <string.h>        // memset, strlen
 #include <unistd.h>        // usleep
-#include <steno_tape.h>    // STENO_TAPE_ENTRY_MAX_LENGTH, steno_tape_cleanup,
-                           // steno_tape_init, steno_tape_log_error,
-                           // steno_tape_log_gaming_mode,
-                           // steno_tape_log_mode_unchanged,
-                           // steno_tape_log_steno_mode, Tape
+#include <steno_tape.h>    // STENO_TAPE_ENTRY_MAX_LENGTH, Tape, steno_tape_*
 
 enum {
   BUFFER_LENGTH = 2,
