@@ -12,9 +12,11 @@ enum {
 };
 
 enum Device {
-  // VID and PID for Georgi
-  // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
+  // VID for QMK keyboards
+  // REF: https://github.com/qmk/qmk_firmware/blob/master/docs/faq_build.md#usb-vid-and-pid
   VENDOR_ID = 0xFEED,
+  // PID for Georgi
+  // REF: https://github.com/qmk/qmk_firmware/blob/master/keyboards/gboards/georgi/config.h
   PRODUCT_ID = 0x1337,
   // PID for Multisteno
   // REF: https://github.com/nkotech/Multisteno-Firmware/blob/main/keyboards/noll/multisteno/info.json
@@ -132,12 +134,12 @@ static void interface_with_device(hid_device *handle, int arg, Tape *tape) {
     unsigned short usage_page = current_device->usage_page;
 
     if (usage_known && (usage != USAGE || usage_page != USAGE_PAGE)) {
-      printf("Skipping -- Usage (page): 0x%hx (0x%hx)\n", usage, usage_page);
+      printf("Skipping -- Usage (page): 0x%hX (0x%hX)\n", usage, usage_page);
       current_device = current_device->next;
       continue;
     }
 
-    printf("Opening -- Usage (page): 0x%hx (0x%hx)...\n", usage, usage_page);
+    printf("Opening -- Usage (page): 0x%hX (0x%hX)...\n", usage, usage_page);
     handle = hid_open_path(current_device->path);
 
     if (!handle) {
